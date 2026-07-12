@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Moon Lander</title>
 <style>
   html, body {
@@ -11,12 +13,19 @@
     background: #000;
     height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
+    position: fixed;
+    width: 100%;
     font-family: "Courier New", monospace;
   }
   #game {
     display: block;
     margin: 0 auto;
     background: #000;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
 </style>
 </head>
@@ -29,8 +38,14 @@
 
   let W, H;
   function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
   }
   window.addEventListener('resize', () => { resize(); genTerrain(); reset(); });
   resize();
@@ -44,20 +59,28 @@
   const SAFE_ANGLE = 0.25; // radians from vertical
   const START_FUEL = 500;
   const SLUG_SPEED = 1.7;
-  const SLUG_SPEED_STEP = 0.15;      // extra slug speed per bonus cannon
-  const CANNON_LEVELS = [2, 5, 8, 11, 14, 16]; // one extra cannon unlocks at each
+  const SLUG_SPEED_STEP = 0.15;      // extra slug speed per additional cannon
+  const CANNON_LEVELS = [2, 5, 8, 11, 14, 16, 18, 20, 22, 24]; // one cannon unlocks at each (max 10)
+  const LASER_AIM_TIME = 42;         // frames ≈ 700 ms — thin aiming line before firing
+  const LASER_BEAM_TIME = 12;        // frames ≈ 200 ms — live beam duration
+  const LASER_HIT_RADIUS = 12;
   const FIRE_INTERVAL = 150;  // frames between shots per cannon
   const SLUG_HIT_RADIUS = 15;
   const START_BOMBS = 3;
+  const START_LIVES = 3;
   const BOMB_EJECT = 2.2;    // ejection speed along the ship's down-axis
   const BOMB_RECOIL = 1.6;   // Newton: equal-and-opposite kick on the ship
   const BLAST_RADIUS = 55;
 
   // --- State ---
+  // debug/testing: pick the starting level via query param, e.g. ?level=5
+  const urlLevel = parseInt(new URLSearchParams(location.search).get('level'), 10);
+  const startLevel = urlLevel >= 1 ? urlLevel : 1;
+
   let terrain = [];   // list of {x, y}
   let pads = [];      // list of {x1, x2, y, mult}
   let stars = [];
-  let lander, particles, state, score = 0, level = 1;
+  let lander, particles, state, score = 0, level = startLevel, lives = START_LIVES;
   let cannons = [], slugs = [], bombs = [], booms = [];
 
   function genStars() {
@@ -100,11 +123,11 @@
   }
 
   function cannonCount() {
-    return 2 + CANNON_LEVELS.filter(l => level >= l).length;
+    return CANNON_LEVELS.filter(l => level >= l).length;
   }
 
   function slugSpeed() {
-    return SLUG_SPEED + (cannonCount() - 2) * SLUG_SPEED_STEP;
+    return SLUG_SPEED + Math.max(0, cannonCount() - 1) * SLUG_SPEED_STEP;
   }
 
   function placeCannons() {
@@ -124,7 +147,11 @@
           best = pt; bestDist = d;
         }
       }
-      if (best) cannons.push({ x: best.x, y: best.y, angle: -Math.PI / 2, cooldown: 0 });
+      if (best) cannons.push({
+        x: best.x, y: best.y, angle: -Math.PI / 2, cooldown: 0,
+        type: cannons.length % 2 ? 'laser' : 'gun', // alternate: 1st gun, 2nd laser, ...
+        phase: 'idle', timer: 0, beamAngle: 0,
+      });
     }
   }
 
@@ -150,6 +177,28 @@
     state = 'flying'; // flying | landed | crashed
   }
 
+  function crash() {
+    state = 'crashed';
+    lives--;
+    explode();
+  }
+
+  // continue after a landing (next level, +1 life), a crash (retry),
+  // or a game over (fresh run from the start level)
+  function advance() {
+    if (state === 'landed') {
+      level++;
+      lives++;
+      genTerrain();
+    } else if (state === 'crashed' && lives <= 0) {
+      score = 0;
+      level = startLevel;
+      lives = START_LIVES;
+      genTerrain();
+    }
+    reset();
+  }
+
   // --- Input ---
   const keys = {};
   window.addEventListener('keydown', e => {
@@ -171,11 +220,58 @@
       saveSettings();
     }
     if ((state === 'landed' || state === 'crashed') && (e.key === ' ' || e.key === 'Enter')) {
-      if (state === 'landed') { level++; genTerrain(); }
-      reset();
+      advance();
     }
   });
   window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+  // --- Touch (iOS / mobile) ---
+  const touchEnabled = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  let touchRot = 0, touchThrust = false;
+
+  function touchButtons() {
+    const r = Math.min(W, H) * 0.085;
+    const m = r * 0.7; // margin from screen edges
+    const y = H - r - m;
+    return {
+      left:   { x: m + r, y, r },
+      right:  { x: m + r * 3.4, y, r },
+      thrust: { x: W - m - r * 1.15, y, r: r * 1.15 },
+      bomb:   { x: W - m - r * 1.15, y: y - r * 3, r: r * 0.75 },
+    };
+  }
+
+  function inButton(b, x, y) {
+    return Math.hypot(x - b.x, y - b.y) <= b.r * 1.25; // forgiving hit area
+  }
+
+  function readTouches(e) {
+    touchRot = 0;
+    touchThrust = false;
+    const btns = touchButtons();
+    for (const t of e.touches) {
+      if (inButton(btns.left, t.clientX, t.clientY)) touchRot -= 1;
+      if (inButton(btns.right, t.clientX, t.clientY)) touchRot += 1;
+      if (inButton(btns.thrust, t.clientX, t.clientY)) touchThrust = true;
+    }
+  }
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const btns = touchButtons();
+    for (const t of e.changedTouches) {
+      if (inButton(btns.bomb, t.clientX, t.clientY)) dropBomb();
+    }
+    if (state === 'landed' || state === 'crashed') {
+      advance();
+    }
+    readTouches(e);
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); readTouches(e); }, { passive: false });
+  canvas.addEventListener('touchend', e => { e.preventDefault(); readTouches(e); }, { passive: false });
+  canvas.addEventListener('touchcancel', e => { e.preventDefault(); readTouches(e); }, { passive: false });
+  // block pinch-zoom gestures in iOS Safari
+  document.addEventListener('gesturestart', e => e.preventDefault());
 
   // --- Controller settings (persisted) ---
   const DEFAULT_SETTINGS = { rotSens: 1.0, deadzone: 0.25, trigThresh: 0.10, autoLevel: true };
@@ -292,8 +388,7 @@
     }
 
     if (pad && (edge.a || edge.start) && (state === 'landed' || state === 'crashed')) {
-      if (state === 'landed') { level++; genTerrain(); }
-      reset();
+      advance();
       return;
     }
 
@@ -309,6 +404,7 @@
     let rot = 0;
     if (keys['ArrowLeft'] || keys['a']) rot -= 1;
     if (keys['ArrowRight'] || keys['d']) rot += 1;
+    rot += touchRot;
     if (pad) {
       if (Math.abs(pad.stickX) > settings.deadzone) rot += pad.stickX * settings.rotSens; // analog
       else if (pad.dpadLeft) rot -= settings.rotSens;
@@ -326,7 +422,7 @@
 
     lander.thrusting = false;
     let thrustAmt = 0;
-    if (keys['ArrowUp'] || keys['w'] || keys[' ']) thrustAmt = 1;
+    if (keys['ArrowUp'] || keys['w'] || keys[' '] || touchThrust) thrustAmt = 1;
     if (pad) thrustAmt = Math.max(thrustAmt, pad.thrustAmt);
     lander.thrustAmt = 0;
     if (thrustAmt > 0 && lander.fuel > 0) {
@@ -379,8 +475,7 @@
         lander.angle = 0;
         score += 50 * pad.mult + Math.floor(lander.fuel / 10);
       } else {
-        state = 'crashed';
-        explode();
+        crash();
       }
     }
   }
@@ -438,8 +533,7 @@
     }
     // your own blast can take you down too
     if (state === 'flying' && Math.hypot(lander.x - x, lander.y - y) < BLAST_RADIUS * 0.8) {
-      state = 'crashed';
-      explode();
+      crash();
     }
   }
 
@@ -462,8 +556,51 @@
     }
   }
 
+  function laserMuzzle(c) {
+    return { x: c.x + Math.cos(c.beamAngle) * 24, y: c.y + Math.sin(c.beamAngle) * 24 - 6 };
+  }
+
+  function laserEndpoint(c) {
+    // march along the locked angle until terrain or the screen edge
+    let { x, y } = laserMuzzle(c);
+    const dx = Math.cos(c.beamAngle) * 8, dy = Math.sin(c.beamAngle) * 8;
+    for (let i = 0; i < 300; i++) {
+      x += dx; y += dy;
+      if (x < 0 || x > W || y < 0 || y > H || y >= terrainYAt(x)) break;
+    }
+    return { x, y };
+  }
+
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len2 = dx * dx + dy * dy || 1;
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len2));
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  }
+
   function updateCannons() {
     for (const c of cannons) {
+      // a laser mid-cycle finishes its aim/beam animation even after a crash
+      if (c.type === 'laser' && c.phase !== 'idle') {
+        c.timer--;
+        if (c.phase === 'aim' && c.timer <= 0) {
+          c.phase = 'beam';
+          c.timer = LASER_BEAM_TIME;
+        } else if (c.phase === 'beam') {
+          if (state === 'flying') {
+            const m = laserMuzzle(c), end = laserEndpoint(c);
+            if (distToSegment(lander.x, lander.y, m.x, m.y, end.x, end.y) < LASER_HIT_RADIUS) {
+              crash();
+            }
+          }
+          if (c.timer <= 0) {
+            c.phase = 'idle';
+            c.cooldown = FIRE_INTERVAL + Math.random() * 60;
+          }
+        }
+        continue; // barrel stays locked on beamAngle while telegraphing/firing
+      }
+
       if (state === 'flying') {
         // smoothly track the lander
         let target = Math.atan2(lander.y - c.y, lander.x - c.x);
@@ -474,15 +611,21 @@
 
         c.cooldown--;
         if (c.cooldown <= 0) {
-          c.cooldown = FIRE_INTERVAL + Math.random() * 60;
-          const sp = slugSpeed();
-          slugs.push({
-            x: c.x + Math.cos(c.angle) * 24,
-            y: c.y + Math.sin(c.angle) * 24 - 6,
-            vx: Math.cos(c.angle) * sp,
-            vy: Math.sin(c.angle) * sp,
-            life: 900,
-          });
+          if (c.type === 'laser') {
+            c.phase = 'aim';
+            c.timer = LASER_AIM_TIME;
+            c.beamAngle = c.angle; // lock: the thin line shows exactly where the beam fires
+          } else {
+            c.cooldown = FIRE_INTERVAL + Math.random() * 60;
+            const sp = slugSpeed();
+            slugs.push({
+              x: c.x + Math.cos(c.angle) * 24,
+              y: c.y + Math.sin(c.angle) * 24 - 6,
+              vx: Math.cos(c.angle) * sp,
+              vy: Math.sin(c.angle) * sp,
+              life: 900,
+            });
+          }
         }
       }
     }
@@ -499,8 +642,7 @@
       }
       if (state === 'flying' && Math.hypot(s.x - lander.x, s.y - lander.y) < SLUG_HIT_RADIUS) {
         slugs.splice(i, 1);
-        state = 'crashed';
-        explode();
+        crash();
       }
     }
   }
@@ -559,13 +701,14 @@
 
   function drawCannons() {
     for (const c of cannons) {
+      const accent = c.type === 'laser' ? '#ff5252' : '#4dd0e1';
       ctx.save();
       ctx.translate(c.x, c.y);
       // barrel
       ctx.save();
       ctx.rotate(c.angle);
       ctx.fillStyle = '#37474f';
-      ctx.strokeStyle = '#4dd0e1';
+      ctx.strokeStyle = accent;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.rect(6, -3.5, 20, 7);
@@ -574,7 +717,7 @@
       // muzzle glow
       ctx.beginPath();
       ctx.arc(26, 0, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#ff4081';
+      ctx.fillStyle = c.type === 'laser' ? '#ff1744' : '#ff4081';
       ctx.fill();
       ctx.restore();
       // dome base
@@ -583,13 +726,51 @@
       ctx.closePath();
       ctx.fillStyle = '#263238';
       ctx.fill();
-      ctx.strokeStyle = '#4dd0e1';
+      ctx.strokeStyle = accent;
       ctx.stroke();
       // blinking core light
       ctx.beginPath();
       ctx.arc(0, -4, 2.5, 0, Math.PI * 2);
       ctx.fillStyle = (Math.floor(performance.now() / 400) % 2) ? '#ff4081' : '#880e4f';
       ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawLasers() {
+    for (const c of cannons) {
+      if (c.type !== 'laser' || c.phase === 'idle') continue;
+      const m = laserMuzzle(c), end = laserEndpoint(c);
+      ctx.save();
+      if (c.phase === 'aim') {
+        // thin telegraph line along the locked firing angle,
+        // glowing brighter as the shot gets closer
+        const urgency = 1 - c.timer / LASER_AIM_TIME; // 0 → 1 over the aim phase
+        ctx.shadowColor = '#ff1744';
+        ctx.shadowBlur = 6 + 6 * urgency;
+        ctx.strokeStyle = '#ff1744';
+        ctx.globalAlpha = 0.75 + 0.25 * urgency;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([8, 4]);
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.stroke();
+      } else {
+        // live beam, fading slightly as it expires
+        ctx.globalAlpha = Math.max(0.4, c.timer / LASER_BEAM_TIME);
+        ctx.shadowColor = '#ff1744';
+        ctx.shadowBlur = 16;
+        ctx.strokeStyle = '#ff5252';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(end.x, end.y);
+        ctx.stroke();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
       ctx.restore();
     }
   }
@@ -731,6 +912,9 @@
     ctx.fillText('VY     ' + lander.vy.toFixed(2), 20, 108);
     ctx.fillStyle = lander.bombs > 0 ? '#e0e0e0' : '#666';
     ctx.fillText('BOMBS  ' + '●'.repeat(lander.bombs) + '○'.repeat(START_BOMBS - lander.bombs), 20, 128);
+    ctx.fillStyle = lives > 1 ? '#ff5252' : '#ff8a80';
+    const shownLives = Math.max(0, lives);
+    ctx.fillText('LIVES  ' + (shownLives > 6 ? '♥ x ' + shownLives : '♥'.repeat(shownLives)), 20, 148);
 
     // fuel bar
     ctx.strokeStyle = '#888';
@@ -749,7 +933,7 @@
     ctx.fillText('LEVEL ASSIST ' + (settings.autoLevel ? 'ON' : 'OFF'), W - 20, 48);
 
     ctx.textAlign = 'center';
-    const restartHint = padConnected ? 'Press SPACE or A' : 'Press SPACE';
+    const restartHint = padConnected ? 'Press SPACE or A' : (touchEnabled ? 'Tap screen' : 'Press SPACE');
     if (state === 'landed') {
       ctx.fillStyle = '#4caf50';
       ctx.font = 'bold 32px Courier New';
@@ -758,13 +942,18 @@
       ctx.fillStyle = '#e0e0e0';
       ctx.fillText(restartHint + ' for next level', W / 2, H / 2 + 12);
     } else if (state === 'crashed') {
+      const over = lives <= 0;
       ctx.fillStyle = '#ff5252';
       ctx.font = 'bold 32px Courier New';
-      ctx.fillText('CRASHED', W / 2, H / 2 - 20);
+      ctx.fillText(over ? 'GAME OVER' : 'CRASHED', W / 2, H / 2 - 20);
       ctx.font = '16px Courier New';
       ctx.fillStyle = '#e0e0e0';
-      ctx.fillText(restartHint + ' to retry', W / 2, H / 2 + 12);
-    } else {
+      ctx.fillText(restartHint + (over ? ' to start over' : ' to retry'), W / 2, H / 2 + 12);
+      if (over) {
+        ctx.fillStyle = '#888';
+        ctx.fillText('FINAL SCORE  ' + score, W / 2, H / 2 + 40);
+      }
+    } else if (!touchEnabled) {
       ctx.fillStyle = '#666';
       ctx.font = '13px Courier New';
       const hint = padConnected
@@ -772,6 +961,34 @@
         : '← → rotate   ↑ / SPACE thrust   B / ↓ bomb   L assist   ESC settings';
       ctx.fillText(hint, W / 2, H - 16);
     }
+  }
+
+  function drawTouchControls() {
+    if (!touchEnabled || menuOpen) return;
+    const btns = touchButtons();
+    const labels = { left: '◀', right: '▶', thrust: '▲', bomb: 'B' };
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 2;
+    for (const name in btns) {
+      const b = btns[name];
+      const active = (name === 'left' && touchRot < 0) || (name === 'right' && touchRot > 0)
+                  || (name === 'thrust' && touchThrust);
+      const disabled = name === 'bomb' && lander.bombs <= 0;
+      ctx.globalAlpha = disabled ? 0.15 : (active ? 0.6 : 0.3);
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = '#37474f';
+      ctx.fill();
+      ctx.strokeStyle = active ? '#fff176' : '#90a4ae';
+      ctx.stroke();
+      ctx.globalAlpha = disabled ? 0.25 : (active ? 1 : 0.7);
+      ctx.fillStyle = '#e0e0e0';
+      ctx.font = 'bold ' + Math.round(b.r * 0.75) + 'px Courier New';
+      ctx.fillText(labels[name], b.x, b.y + 1);
+    }
+    ctx.restore();
   }
 
   function drawMenu() {
@@ -821,11 +1038,13 @@
     drawStars();
     drawTerrain();
     drawCannons();
+    drawLasers();
     drawSlugs();
     drawBombs();
     drawParticles();
     drawLander();
     drawHUD();
+    drawTouchControls();
     if (menuOpen) drawMenu();
     requestAnimationFrame(loop);
   }
