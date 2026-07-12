@@ -4,7 +4,8 @@ import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, saveProgress, c
 import { ctx } from './canvas.js';
 import {
   GRAVITY, THRUST, ROT_SPEED, SAFE_VX,
-  ASSIST_LEVEL_RATE, ASSIST_RETRO_GAIN, ASSIST_RETRO_MAX, SHIELD_COOLDOWN,
+  ASSIST_LEVEL_RATE, ASSIST_RETRO_GAIN, ASSIST_RETRO_MAX,
+  SHIELD_COOLDOWN, SHIELD_RECHARGE_FRAMES,
 } from './config.js';
 import { terrainYAt, padAt } from './terrain.js';
 
@@ -21,6 +22,7 @@ export function createLander() {
     bombs: bombsPerAttempt(),
     shield: game.unlocks.shield, // hits this attempt can absorb
     shieldCooldown: 0,
+    shieldRegen: SHIELD_RECHARGE_FRAMES,
   };
 }
 
@@ -71,6 +73,7 @@ export function hitShip() {
   if (lander.shield > 0) {
     lander.shield--;
     lander.shieldCooldown = SHIELD_COOLDOWN; // visual flash only
+    lander.shieldRegen = SHIELD_RECHARGE_FRAMES; // getting hit restarts the recharge
     shieldBurst();
     return;
   }
@@ -81,6 +84,15 @@ export function hitShip() {
 export function updateLander(rot, thrustAmt, assistHeld) {
   const lander = game.lander;
   if (lander.shieldCooldown > 0) lander.shieldCooldown--;
+  // consumed shield charges trickle back after a few quiet seconds
+  if (lander.shield < game.unlocks.shield) {
+    lander.shieldRegen--;
+    if (lander.shieldRegen <= 0) {
+      lander.shield++;
+      lander.shieldRegen = SHIELD_RECHARGE_FRAMES;
+      lander.shieldCooldown = 12; // brief blink as the bubble returns
+    }
+  }
 
   if (rot) {
     lander.angle += ROT_SPEED * rot;

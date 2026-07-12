@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.4';
+export const VERSION = '1.5';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -22,6 +22,7 @@ export const START_BOMBS = 3;
 export const START_LIVES = 3;
 
 export const SHIELD_COOLDOWN = 45;    // frames the shield flash lasts after an absorb (visual only)
+export const SHIELD_RECHARGE_FRAMES = 240; // ≈4s to regain one charge; taking a hit restarts the timer
 export const GEAR_VY_STEP = 0.35;     // extra safe descent speed per landing-gear tier
 export const GEAR_ANGLE_STEP = 0.07;  // extra safe landing angle (rad) per tier
 

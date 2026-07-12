@@ -123,6 +123,24 @@ assert(game.lander.shield === 1, 'shield recharges each attempt');
   game.cannons.splice(game.cannons.indexOf(fake), 1);
 }
 
+// a consumed charge recharges after ~4 quiet seconds
+{
+  const levelWas = game.level;
+  game.level = 2;       // no asteroid spawns while we wait
+  game.cannons = [];    // no incoming fire either
+  game.asteroids = [];
+  assert(game.lander.shield === 0, 'charge consumed before the recharge wait');
+  for (let i = 0; i < 6; i++) { // park the ship so it can't hit terrain
+    game.lander.y = 150;
+    game.lander.vy = 0;
+    runFrames(50);
+  }
+  assert(game.lander.shield === 1, 'shield recharges after a few seconds');
+  runFrames(60);
+  assert(game.lander.shield === 1, 'recharge never exceeds the owned tier');
+  game.level = levelWas;
+}
+
 // triple bomb: one press releases the whole rack
 pressKey('b');
 assert(game.lander.bombs === 0 && game.bombs.length === 3, 'triple bomb releases all 3 at once');

@@ -63,6 +63,7 @@ smoke test to cover it.
 - **Damage routing**: shots/impacts go through `hitShip()` (shield-absorbable,
   one charge per projectile, no immunity window); terrain crashes call
   `crash()` directly. A multi-frame laser beam counts as ONE projectile.
+  Consumed charges recharge after a few quiet seconds; a hit restarts the timer.
 - **Saved progress** (`moonLanderProgress` in localStorage) survives refresh;
   wiped only by game over or RESET PROGRESS. Touchdown saves `level + 1` so
   the shop screen can't be refresh-farmed.
