@@ -37,12 +37,13 @@ function update() {
 
   if (game.state === 'landed') {
     // shop is open — console conventions: A confirms the selected row
-    // (buy, or launch when LAUNCH is selected), START skips straight to launch
+    // (buy, or launch when LAUNCH is selected), B backs out of the shop,
+    // START skips straight to launch
     if (pad) {
       if (edge.navUp) shopMove(-1);
       if (edge.navDown) shopMove(1);
       if (edge.a) shopActivate();
-      if (edge.start) advance();
+      if (edge.start || edge.bBtn) advance();
     }
     return;
   }

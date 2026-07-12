@@ -181,10 +181,13 @@ export function drawHUD() {
   if (game.state === 'landed') {
     ctx.fillStyle = '#4caf50';
     ctx.font = 'bold 42px Courier New';
-    ctx.fillText('THE EAGLE HAS LANDED', W / 2, H / 2 - 60);
-    if (game.lifeAwarded) {
-      ctx.font = 'bold 19px Courier New';
-      ctx.fillText('+1 BONUS LIFE', W / 2, H / 2 - 28);
+    ctx.fillText('THE EAGLE HAS LANDED', W / 2, H / 2 - 74);
+    if (game.landingBreakdown) {
+      const b = game.landingBreakdown;
+      let text = '+' + (b.pad + b.fuel + b.speed) + ' CR — PAD ' + b.pad + ' · FUEL ' + b.fuel + ' · SPEED ' + b.speed;
+      if (game.lifeAwarded) text += ' · +1 LIFE';
+      ctx.font = 'bold 18px Courier New';
+      ctx.fillText(text, W / 2, H / 2 - 42);
     }
   } else if (game.state === 'crashed') {
     const over = game.lives <= 0;

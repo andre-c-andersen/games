@@ -1,4 +1,4 @@
-# 🌙 Moon Lander — v1.8
+# 🌙 Moon Lander — v1.11
 
 A classic lunar lander arcade game for the browser — with sci-fi defense cannons, laser turrets, droppable bombs, touch controls, and full Xbox controller support. Vanilla HTML/CSS/JS with ES modules, no dependencies, no build step.
 
@@ -65,7 +65,7 @@ js/
 
 ## How to play
 
-Land gently on a pad. A safe landing needs low speed and a nearly upright ship — watch the docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, and leftover fuel pays a bonus. The easy pad disappears from level 10 and the medium from level 20 — after that, only the narrow ×3 pad remains. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
+Land gently on a pad. A safe landing needs low speed and a nearly upright ship — watch the docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, leftover fuel pays a bonus, and landing quickly pays a speed bonus (up to 150 credits, shrinking every second). The easy pad disappears from level 10 and the medium from level 20 — after that, only the narrow ×3 pad remains. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
 
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 
@@ -73,6 +73,7 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 - **Fly assist** (toggled with the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you; landing assist aims the rocket so thrusting steers you onto the nearest pad — you still fly the throttle.
 - **Shields**: three expensive tiers — each charge blocks exactly one projectile (a slug, a laser beam, an asteroid, or a blast; not bad landings). No immunity between hits: sustained fire will chew through the charges. A consumed charge recharges after ~4 quiet seconds; taking a hit restarts the timer.
 - **Landing gear**: three tiers — each raises how much descent speed and landing angle a touchdown tolerates; the docking indicator's box widens to match.
+- **Thrusters**: two tiers of stronger engines (+15% / +31% thrust) — snappier burns and easier saves, with a visibly longer exhaust flame.
 - **Fuel tanks**: three capacity upgrades.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
@@ -88,7 +89,7 @@ Progress (level, credits, lives, unlocks) is saved in your browser, so a refresh
 | ↑ / Space (or W) | Thrust |
 | B / S / ↓ | Drop bomb (once unlocked) |
 | F | Toggle fly assist (once unlocked) |
-| ESC | Settings menu |
+| ESC | Settings menu · leave shop |
 | ↑↓ / Enter | Select / buy in the shop |
 | Space | Launch next level / retry |
 
@@ -99,7 +100,7 @@ Progress (level, credits, lives, unlocks) is saved in your browser, so a refresh
 | Left stick / D-pad | Rotate (analog) · navigate menus |
 | Right trigger | Thrust (analog throttle) |
 | A | Full thrust · confirm selected (shop & menus) · retry |
-| B / LB | Drop bomb (once unlocked) · close menu |
+| B / LB | Drop bomb (once unlocked) · close menu · leave shop |
 | X | Toggle fly assist |
 | Start | Launch next level / retry |
 | Back | Settings menu |

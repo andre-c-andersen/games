@@ -6,7 +6,7 @@ const expected = {
   credits: 700,
   level: 21,
   lives: 4,
-  unlocks: { weapon: 2, assist: 2, shield: 1, gear: 1, fuel: 1, livesBought: 2 },
+  unlocks: { weapon: 2, assist: 2, shield: 1, gear: 1, thruster: 1, fuel: 1, livesBought: 2 },
   assistOn: false,
 };
 
@@ -23,6 +23,7 @@ assert(game.unlocks.weapon === expected.unlocks.weapon
   && game.unlocks.assist === expected.unlocks.assist
   && game.unlocks.shield === expected.unlocks.shield
   && game.unlocks.gear === expected.unlocks.gear
+  && game.unlocks.thruster === expected.unlocks.thruster
   && game.unlocks.fuel === expected.unlocks.fuel
   && game.unlocks.livesBought === expected.unlocks.livesBought, 'unlocks restored');
 console.log('Restore path OK.');

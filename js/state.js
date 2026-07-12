@@ -3,7 +3,7 @@
 
 import {
   START_LIVES, START_FUEL, FUEL_TANK_STEP, START_BOMBS, VIEW_W, VIEW_H,
-  SAFE_VY, SAFE_ANGLE, GEAR_VY_STEP, GEAR_ANGLE_STEP,
+  SAFE_VY, SAFE_ANGLE, GEAR_VY_STEP, GEAR_ANGLE_STEP, THRUST, THRUST_STEP,
 } from './config.js';
 
 // debug/testing: pick the starting level via query param, e.g. ?level=4
@@ -24,6 +24,7 @@ export function freshUnlocks() {
     assist: 0,      // 0 none, 1 level assist, 2 retro assist
     shield: 0,      // hits absorbed per attempt (0..3)
     gear: 0,        // landing gear tier: raises safe descent speed and angle (0..3)
+    thruster: 0,    // stronger engines (0..2)
     fuel: 0,        // fuel tank upgrades owned
     livesBought: 0, // for the progressive life price
   };
@@ -66,11 +67,12 @@ export const game = {
   assistOn: saved ? !!saved.assistOn : false, // fly assist toggle state
   assistActive: false, // assist engaged this frame (for the HUD)
   lifeAwarded: false,  // bonus life granted on the current landing (for the HUD)
+  landingBreakdown: null, // { pad, fuel, speed } credits of the current landing (for the HUD)
 };
 
 export function applyCheats() {
   if (!cheat.max) return;
-  game.unlocks = { weapon: 4, assist: 3, shield: 3, gear: 3, fuel: 3, livesBought: 0 };
+  game.unlocks = { weapon: 4, assist: 3, shield: 3, gear: 3, thruster: 2, fuel: 3, livesBought: 0 };
   game.lives = 99;
   game.credits = Math.max(game.credits, 9999);
 }
@@ -118,4 +120,8 @@ export function safeVY() {
 
 export function safeAngle() {
   return SAFE_ANGLE + game.unlocks.gear * GEAR_ANGLE_STEP;
+}
+
+export function thrustPower() {
+  return THRUST + game.unlocks.thruster * THRUST_STEP;
 }

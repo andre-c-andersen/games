@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.8';
+export const VERSION = '1.11';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -10,11 +10,15 @@ export const VIEW_H = 720;
 
 export const GRAVITY = 0.018;
 export const THRUST = 0.085;
+export const THRUST_STEP = 0.013; // extra thrust per thruster upgrade (2 tiers)
 export const ROT_SPEED = 0.055;
 
 export const SAFE_VX = 1.3;
 export const SAFE_VY = 1.8;
 export const SAFE_ANGLE = 0.25; // radians from vertical
+
+export const SPEED_BONUS_MAX = 150;   // landing credits for a lightning-fast touchdown…
+export const SPEED_BONUS_DECAY = 10;  // …shrinking by this much per second of attempt time
 
 export const START_FUEL = 500;
 export const FUEL_TANK_STEP = 150; // extra capacity per fuel tank upgrade

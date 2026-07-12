@@ -64,10 +64,30 @@ runFrames(30);
 keyUp('ArrowUp');
 assert(game.lander.fuel < fuelBefore, 'thrusting burns fuel');
 
-// --- shop flow (simulate a landing) ---
+// a real touchdown: pad + fuel + full speed bonus, paid and itemized
+{
+  const pad = game.pads[0];
+  const l = game.lander;
+  const creditsBefore = game.credits;
+  l.x = (pad.x1 + pad.x2) / 2;
+  l.y = pad.y - 40;
+  l.vx = 0;
+  l.vy = 0.5;
+  l.angle = 0;
+  l.age = 0; // fast landing → full speed bonus
+  const expectedFuel = Math.floor(l.fuel / 10);
+  runFrames(120);
+  assert(game.state === 'landed', 'controlled touchdown lands');
+  assert(game.landingBreakdown && game.landingBreakdown.speed === 150,
+    'fast landing earns the full speed bonus');
+  assert(game.credits === creditsBefore + 50 * pad.mult + expectedFuel + 150,
+    'landing pays pad + fuel + speed');
+}
+
+// --- shop flow (already landed above) ---
 game.state = 'landed';
 runFrames(1); // shop opens
-assert(shop.index === 6, 'LAUNCH is preselected when the shop opens');
+assert(shop.index === 7, 'LAUNCH is preselected when the shop opens');
 game.credits = 5000;
 shop.index = 0;
 pressKey('Enter'); // buy weapon tier 1: BOMBS ×3 (100)
@@ -75,27 +95,32 @@ assert(game.unlocks.weapon === 1 && game.credits === 4900, 'bought bombs unlock'
 pressKey('Enter'); // tier 2: TRIPLE BOMB (250)
 assert(game.unlocks.weapon === 2 && game.credits === 4650, 'bought triple bomb');
 pressKey('ArrowDown'); // assist row
-pressKey('Enter'); // LEVEL ASSIST (150)
-assert(game.unlocks.assist === 1 && game.credits === 4500, 'bought level assist');
-pressKey('Enter'); // RETRO ASSIST (700)
-assert(game.unlocks.assist === 2 && game.credits === 3800, 'bought retro assist');
-pressKey('Enter'); // LANDING ASSIST (1400)
-assert(game.unlocks.assist === 3 && game.credits === 2400, 'bought landing assist');
+pressKey('Enter'); // LEVEL ASSIST (100)
+assert(game.unlocks.assist === 1 && game.credits === 4550, 'bought level assist');
+pressKey('Enter'); // RETRO ASSIST (300)
+assert(game.unlocks.assist === 2 && game.credits === 4250, 'bought retro assist');
+pressKey('Enter'); // LANDING ASSIST (600)
+assert(game.unlocks.assist === 3 && game.credits === 3650, 'bought landing assist');
 pressKey('ArrowDown'); // shield row
 pressKey('Enter'); // SHIELD +1 HIT (600)
-assert(game.unlocks.shield === 1 && game.credits === 1800, 'bought shield tier 1');
+assert(game.unlocks.shield === 1 && game.credits === 3050, 'bought shield tier 1');
 pressKey('ArrowDown'); // gear row
 pressKey('Enter'); // LANDING GEAR MK2 (200)
-assert(game.unlocks.gear === 1 && game.credits === 1600, 'bought landing gear');
+assert(game.unlocks.gear === 1 && game.credits === 2850, 'bought landing gear');
+pressKey('ArrowDown'); // thruster row
+pressKey('Enter'); // THRUSTER MK2 (250)
+assert(game.unlocks.thruster === 1 && game.credits === 2600, 'bought thruster mk2');
+pressKey('Enter'); // THRUSTER MK3 (500)
+assert(game.unlocks.thruster === 2 && game.credits === 2100, 'bought thruster mk3');
 pressKey('ArrowDown'); // fuel row
 pressKey('Enter'); // FUEL TANK (120)
-assert(game.unlocks.fuel === 1 && game.credits === 1480, 'bought fuel tank');
+assert(game.unlocks.fuel === 1 && game.credits === 1980, 'bought fuel tank');
 pressKey('ArrowDown'); // life row
 const livesBefore = game.lives;
 pressKey('Enter'); // EXTRA LIFE (100)
-assert(game.lives === livesBefore + 1 && game.credits === 1380, 'bought extra life');
+assert(game.lives === livesBefore + 1 && game.credits === 1880, 'bought extra life');
 pressKey('Enter'); // second life should cost more (180)
-assert(game.credits === 1200, 'life price escalates (180 for the second)');
+assert(game.credits === 1700, 'life price escalates (180 for the second)');
 
 const levelBefore = game.level;
 pressKey(' '); // launch
@@ -104,13 +129,25 @@ assert(game.lives === livesBefore + 2, 'no free life on level advance');
 assert(game.lander.bombs === 3, 'bombs granted after unlock');
 assert(game.lander.fuel === 650, 'fuel capacity upgraded to 650');
 assert(game.lander.shield === 1, 'shield charge granted on launch');
-const { safeVY } = await importGame('state.js');
+const { safeVY, thrustPower } = await importGame('state.js');
 assert(Math.abs(safeVY() - 2.15) < 1e-9, 'landing gear raises safe descent speed to 2.15');
+assert(Math.abs(thrustPower() - 0.111) < 1e-9, 'thruster upgrades raise thrust to 0.111');
 {
   const p = JSON.parse(h.store.moonLanderProgress);
   assert(p.level === game.level && p.credits === game.credits
     && p.lives === game.lives && p.unlocks.weapon === game.unlocks.weapon,
     'progress persisted to localStorage');
+}
+
+// ESC exits the shop by launching — it does not open the menu there
+{
+  const { menu } = await importGame('menu.js');
+  game.state = 'landed';
+  runFrames(1);
+  const lvl = game.level;
+  pressKey('Escape');
+  assert(game.state === 'flying' && game.level === lvl + 1 && !menu.open,
+    'ESC leaves the shop by launching, without opening the menu');
 }
 
 // shield: one charge blocks exactly one projectile — no immunity window

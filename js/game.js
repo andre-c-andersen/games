@@ -19,6 +19,7 @@ export function reset() {
   game.cannons.forEach(c => { c.cooldown = 120 + Math.random() * 150; });
   resetAsteroids();
   game.lifeAwarded = false;
+  game.landingBreakdown = null;
   game.state = 'flying';
 }
 

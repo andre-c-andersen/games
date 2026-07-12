@@ -10,7 +10,12 @@ import { perf } from '../perf.js';
 export const keys = {};
 
 window.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { menu.open = !menu.open; return; }
+  if (e.key === 'Escape') {
+    if (menu.open) { menu.open = false; return; }
+    if (game.state === 'landed') { advance(); return; } // ESC exits the shop = launch
+    menu.open = true;
+    return;
+  }
   if (menu.open) {
     if (e.key === 'ArrowUp') menuMove(-1);
     else if (e.key === 'ArrowDown') menuMove(1);

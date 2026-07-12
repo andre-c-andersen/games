@@ -14,10 +14,12 @@ const WEAPON_TIERS = [
   { label: 'SUPER BOMBS',       price: 500 },
   { label: 'TRIPLE SUPER BOMB', price: 900 },
 ];
+// deliberately cheap: assists mostly help players who are still learning,
+// so they should be affordable early rather than late-game luxuries
 const ASSIST_TIERS = [
-  { label: 'LEVEL ASSIST',   price: 150 },
-  { label: 'RETRO ASSIST',   price: 700 },
-  { label: 'LANDING ASSIST', price: 1400 },
+  { label: 'LEVEL ASSIST',   price: 100 },
+  { label: 'RETRO ASSIST',   price: 300 },
+  { label: 'LANDING ASSIST', price: 600 },
 ];
 const SHIELD_TIERS = [
   { label: 'SHIELD +1 HIT', price: 600 },
@@ -28,6 +30,10 @@ const GEAR_TIERS = [
   { label: 'LANDING GEAR MK2', price: 200 },
   { label: 'LANDING GEAR MK3', price: 400 },
   { label: 'LANDING GEAR MK4', price: 700 },
+];
+const THRUSTER_TIERS = [
+  { label: 'THRUSTER MK2', price: 250 },
+  { label: 'THRUSTER MK3', price: 500 },
 ];
 const FUEL_TIERS = [
   { label: 'FUEL TANK +150', price: 120 },
@@ -55,6 +61,7 @@ export function shopRows() {
     nextTier(ASSIST_TIERS, u.assist, 'assist', 'ASSIST MAXED'),
     nextTier(SHIELD_TIERS, u.shield, 'shield', 'SHIELDS MAXED'),
     nextTier(GEAR_TIERS, u.gear, 'gear', 'LANDING GEAR MAXED'),
+    nextTier(THRUSTER_TIERS, u.thruster, 'thruster', 'THRUSTERS MAXED'),
     nextTier(FUEL_TIERS, u.fuel, 'fuel', 'FUEL TANK MAXED'),
     { id: 'life', label: 'EXTRA LIFE', price: lifePrice() },
     { id: 'launch', label: 'LAUNCH ▸', price: null },
@@ -81,6 +88,7 @@ export function shopBuy(row) {
   else if (row.id === 'assist') u.assist++;
   else if (row.id === 'shield') u.shield++;
   else if (row.id === 'gear') u.gear++;
+  else if (row.id === 'thruster') u.thruster++;
   else if (row.id === 'fuel') u.fuel++;
   else if (row.id === 'life') { u.livesBought++; game.lives++; }
   // purchases happen on the shop screen, where the save already points at the
@@ -97,9 +105,9 @@ export function shopActivate() {
 function layout() {
   const { W, H } = game;
   const rows = shopRows();
-  const rowH = 40;
+  const rowH = 38;
   const pw = Math.min(W * 0.86, 640);
-  const ph = 64 + rows.length * rowH + 22;
+  const ph = 60 + rows.length * rowH + 20;
   const top = Math.min(H / 2 + 36, H - ph - 8); // keep on-screen for short viewports
   return { rows, rowH, pw, ph, top, left: W / 2 - pw / 2 };
 }
@@ -117,10 +125,10 @@ export function drawShop() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#4caf50';
   ctx.font = 'bold 21px Courier New';
-  ctx.fillText('SUPPLY DEPOT — ' + game.credits + ' CR', cx, top + 30);
+  ctx.fillText('SUPPLY DEPOT — ' + game.credits + ' CR', cx, top + 28);
 
   rows.forEach((row, i) => {
-    const y = top + 68 + i * rowH;
+    const y = top + 62 + i * rowH;
     const sel = i === shop.index;
     const affordable = row.price !== null && game.credits >= row.price;
     ctx.font = (sel ? 'bold ' : '') + '18px Courier New';
@@ -141,10 +149,10 @@ export function drawShop() {
   ctx.fillStyle = '#666';
   ctx.font = '15px Courier New';
   const hint = gamepad.connected
-    ? 'D-PAD select   A confirm   START launch'
+    ? 'D-PAD select   A confirm   B or START launch'
     : touchDevice
       ? 'tap a row to buy   tap LAUNCH to lift off'
-      : '↑↓ select   ENTER confirm   SPACE launch';
+      : '↑↓ select   ENTER confirm   SPACE or ESC launch';
   ctx.fillText(hint, cx, top + ph - 12);
   ctx.restore();
 }
@@ -152,8 +160,8 @@ export function drawShop() {
 export function shopRowAt(x, y) {
   const { rows, rowH, pw, top, left } = layout();
   for (let i = 0; i < rows.length; i++) {
-    const ry = top + 68 + i * rowH;
-    if (x >= left && x <= left + pw && y >= ry - 25 && y <= ry + 13) return rows[i];
+    const ry = top + 62 + i * rowH;
+    if (x >= left && x <= left + pw && y >= ry - 24 && y <= ry + 12) return rows[i];
   }
   return null;
 }

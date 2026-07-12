@@ -1,9 +1,10 @@
 // The lander: creation, flight physics, touchdown/crash, drawing.
 
-import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, saveProgress, cheat } from './state.js';
+import { game, fuelCapacity, bombsPerAttempt, safeVY, safeAngle, thrustPower, saveProgress, cheat } from './state.js';
 import { ctx } from './canvas.js';
 import {
-  GRAVITY, THRUST, ROT_SPEED, SAFE_VX,
+  GRAVITY, ROT_SPEED, SAFE_VX,
+  SPEED_BONUS_MAX, SPEED_BONUS_DECAY,
   ASSIST_LEVEL_RATE, ASSIST_RETRO_GAIN, ASSIST_RETRO_MAX,
   LAND_ASSIST_RATE, LAND_ASSIST_KP, LAND_ASSIST_DRIFT, LAND_ASSIST_DRIFT_MAX,
   LAND_ASSIST_DESCENT, LAND_ASSIST_DESCENT_MIN, LAND_ASSIST_DESCENT_MAX,
@@ -33,6 +34,7 @@ export function createLander() {
     shield: game.unlocks.shield, // hits this attempt can absorb
     shieldCooldown: 0,
     shieldRegen: SHIELD_RECHARGE_FRAMES,
+    age: 0, // frames since the attempt started, for the landing speed bonus
   };
 }
 
@@ -130,6 +132,7 @@ function landingAssistAngle(lander) {
 // rot, thrustAmt, and assistHeld are the aggregated control inputs for this frame
 export function updateLander(rot, thrustAmt, assistHeld) {
   const lander = game.lander;
+  lander.age++;
   if (lander.shieldCooldown > 0) lander.shieldCooldown--;
   // consumed shield charges trickle back after a few quiet seconds
   if (lander.shield < game.unlocks.shield) {
@@ -168,8 +171,8 @@ export function updateLander(rot, thrustAmt, assistHeld) {
   if (thrustAmt > 0 && lander.fuel > 0) {
     lander.thrusting = true;
     lander.thrustAmt = thrustAmt;
-    lander.vx += Math.sin(lander.angle) * THRUST * thrustAmt;
-    lander.vy -= Math.cos(lander.angle) * THRUST * thrustAmt;
+    lander.vx += Math.sin(lander.angle) * thrustPower() * thrustAmt;
+    lander.vy -= Math.cos(lander.angle) * thrustPower() * thrustAmt;
     lander.fuel -= thrustAmt; // fuel burn scales with throttle
     // exhaust particles
     const n = Math.max(1, Math.round(3 * thrustAmt));
@@ -214,7 +217,12 @@ export function updateLander(rot, thrustAmt, assistHeld) {
       lander.y = pad.y - 12;
       lander.vx = lander.vy = 0;
       lander.angle = 0;
-      game.credits += 50 * pad.mult + Math.floor(lander.fuel / 10);
+      // payout: pad multiplier + leftover fuel + a bonus for landing fast
+      const padCr = 50 * pad.mult;
+      const fuelCr = Math.floor(lander.fuel / 10);
+      const speedCr = Math.max(0, SPEED_BONUS_MAX - Math.floor(lander.age / 60) * SPEED_BONUS_DECAY);
+      game.credits += padCr + fuelCr + speedCr;
+      game.landingBreakdown = { pad: padCr, fuel: fuelCr, speed: speedCr };
       // a free life every other level, awarded at touchdown
       if (game.level % 2 === 0) {
         game.lives++;
@@ -254,14 +262,15 @@ export function drawLander() {
   ctx.translate(lander.x, lander.y);
   ctx.rotate(lander.angle);
 
-  // flame — length and width scale with throttle
+  // flame — length and width scale with throttle and thruster tier
   if (lander.thrusting && game.state === 'flying') {
     const amt = lander.thrustAmt;
     const flick = Math.random() * 8 * amt;
+    const boost = 1 + game.unlocks.thruster * 0.2;
     const w = 2 + 3 * amt;
     ctx.beginPath();
     ctx.moveTo(-w, 12);
-    ctx.lineTo(0, 12 + (10 + flick) * amt);
+    ctx.lineTo(0, 12 + (10 + flick) * amt * boost);
     ctx.lineTo(w, 12);
     ctx.closePath();
     ctx.fillStyle = amt < 0.5 ? '#ffcc80' : '#ffa726';
