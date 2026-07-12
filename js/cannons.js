@@ -3,19 +3,27 @@
 import { game } from './state.js';
 import { ctx } from './canvas.js';
 import {
-  CANNON_LEVELS, FIRE_INTERVAL,
+  FIRE_INTERVAL,
   SLUG_SPEED, SLUG_SPEED_STEP, SLUG_HIT_RADIUS,
-  LASER_AIM_TIME, LASER_BEAM_TIME, LASER_HIT_RADIUS,
+  LASER_AIM_TIME, LASER_AIM_MIN, LASER_AIM_STEP, LASER_BEAM_TIME, LASER_HIT_RADIUS,
 } from './config.js';
 import { terrainYAt } from './terrain.js';
 import { crash } from './lander.js';
 
 export function cannonCount() {
-  return CANNON_LEVELS.filter(l => game.level >= l).length;
+  // one cannon at level 2, another every other level — no cap; terrain
+  // spacing naturally limits how many actually fit
+  return Math.max(0, Math.floor(game.level / 2));
 }
 
 function slugSpeed() {
+  // keeps climbing with the cannon count at higher levels
   return SLUG_SPEED + Math.max(0, cannonCount() - 1) * SLUG_SPEED_STEP;
+}
+
+function laserAimTime() {
+  // the telegraph gets shorter as levels progress (first laser arrives at level 4)
+  return Math.max(LASER_AIM_MIN, LASER_AIM_TIME - (game.level - 4) * LASER_AIM_STEP);
 }
 
 export function placeCannons() {
@@ -24,9 +32,9 @@ export function placeCannons() {
   // terrain vertices away from screen edges and landing pads
   const candidates = game.terrain.filter(pt =>
     pt.x > W * 0.08 && pt.x < W * 0.92 &&
-    !game.pads.some(p => pt.x > p.x1 - 60 && pt.x < p.x2 + 60));
+    !game.pads.some(p => pt.x > p.x1 - 45 && pt.x < p.x2 + 45));
   const n = cannonCount();
-  const minGap = Math.min(W * 0.15, (W * 0.8) / n); // tighter packing allowed as count grows
+  const minGap = Math.min(W * 0.15, (W * 0.45) / n); // tighter packing allowed as count grows
   for (let i = 0; i < n; i++) {
     const targetX = W * ((i + 1) / (n + 1));
     let best = null, bestDist = Infinity;
@@ -39,7 +47,7 @@ export function placeCannons() {
     if (best) game.cannons.push({
       x: best.x, y: best.y, angle: -Math.PI / 2, cooldown: 0,
       type: game.cannons.length % 2 ? 'laser' : 'gun', // alternate: 1st gun, 2nd laser, ...
-      phase: 'idle', timer: 0, beamAngle: 0,
+      phase: 'idle', timer: 0, aimTotal: 0, beamAngle: 0,
     });
   }
 }
@@ -103,7 +111,7 @@ export function updateCannons() {
       if (c.cooldown <= 0) {
         if (c.type === 'laser') {
           c.phase = 'aim';
-          c.timer = LASER_AIM_TIME;
+          c.timer = c.aimTotal = laserAimTime();
           c.beamAngle = c.angle; // lock: the thin line shows exactly where the beam fires
         } else {
           c.cooldown = FIRE_INTERVAL + Math.random() * 60;
@@ -184,7 +192,7 @@ export function drawLasers() {
     if (c.phase === 'aim') {
       // thin telegraph line along the locked firing angle,
       // glowing brighter as the shot gets closer
-      const urgency = 1 - c.timer / LASER_AIM_TIME; // 0 → 1 over the aim phase
+      const urgency = 1 - c.timer / (c.aimTotal || LASER_AIM_TIME); // 0 → 1 over the aim phase
       ctx.shadowColor = '#ff1744';
       ctx.shadowBlur = 6 + 6 * urgency;
       ctx.strokeStyle = '#ff1744';

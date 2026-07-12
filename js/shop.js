@@ -16,7 +16,7 @@ const WEAPON_TIERS = [
 ];
 const ASSIST_TIERS = [
   { label: 'LEVEL ASSIST',  price: 150 },
-  { label: 'RETRO ASSIST',  price: 400 },
+  { label: 'RETRO ASSIST',  price: 700 },
 ];
 const FUEL_TIERS = [
   { label: 'FUEL TANK +150', price: 120 },

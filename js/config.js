@@ -25,16 +25,17 @@ export const ASSIST_RETRO_MAX = 1.1;    // radians — max retro tilt
 
 export const FIRE_INTERVAL = 150;  // frames between shots per cannon
 export const SLUG_SPEED = 1.7;
-export const SLUG_SPEED_STEP = 0.15;      // extra slug speed per additional cannon
+export const SLUG_SPEED_STEP = 0.15;      // extra slug speed per additional cannon (uncapped)
 export const SLUG_HIT_RADIUS = 15;
-export const CANNON_LEVELS = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]; // one cannon unlocks at each (max 10)
 
-export const LASER_AIM_TIME = 90;         // frames ≈ 1500 ms — thin aiming line before firing
+export const LASER_AIM_TIME = 90;         // frames ≈ 1500 ms — telegraph at low levels…
+export const LASER_AIM_MIN = 42;          // …shrinking to ≈ 700 ms at high levels
+export const LASER_AIM_STEP = 3;          // frames of telegraph lost per level past the first laser
 export const LASER_BEAM_TIME = 12;        // frames ≈ 200 ms — live beam duration
 export const LASER_HIT_RADIUS = 12;
 
 export const BOMB_EJECT = 2.2;    // ejection speed along the ship's down-axis
 export const BOMB_RECOIL = 1.6;   // Newton: equal-and-opposite kick on the ship
 export const BLAST_RADIUS = 55;
-export const SUPER_BLAST_RADIUS = 95;
+export const SUPER_BLAST_RADIUS = 130;
 export const TRIPLE_SPREAD = 0.28; // radians between bombs in a triple volley
