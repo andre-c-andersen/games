@@ -23,7 +23,9 @@ export const ASSIST_LEVEL_RATE = 0.012; // rad/frame — constant angular speed 
 export const ASSIST_RETRO_GAIN = 0.35;  // retro assist: target tilt per unit of vx
 export const ASSIST_RETRO_MAX = 1.1;    // radians — max retro tilt
 
-export const FIRE_INTERVAL = 150;  // frames between shots per cannon
+export const FIRE_INTERVAL = 150;      // frames between shots per cannon at low levels…
+export const FIRE_INTERVAL_MIN = 70;   // …shrinking to this floor at high levels
+export const FIRE_INTERVAL_STEP = 3;   // frames of cooldown lost per level past the first cannon
 export const SLUG_SPEED = 1.7;
 export const SLUG_SPEED_STEP = 0.15;      // extra slug speed per additional cannon (uncapped)
 export const SLUG_HIT_RADIUS = 15;

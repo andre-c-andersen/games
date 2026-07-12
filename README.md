@@ -58,7 +58,7 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 - **Fuel tanks**: three capacity upgrades.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
-From level 2, cannons appear — one more every other level, with no upper limit. Guns fire slugs that get faster as the cannon count grows, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter at higher levels. Game over resets credits and unlocks — the run is the progression.
+From level 2, cannons appear — one more every other level, with no upper limit. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. Game over resets credits and unlocks — the run is the progression.
 
 Progress (level, credits, lives, unlocks) is saved in your browser, so a refresh resumes the run at the start of the current level. Only a game over wipes it.
 

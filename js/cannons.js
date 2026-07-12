@@ -3,7 +3,7 @@
 import { game } from './state.js';
 import { ctx } from './canvas.js';
 import {
-  FIRE_INTERVAL,
+  FIRE_INTERVAL, FIRE_INTERVAL_MIN, FIRE_INTERVAL_STEP,
   SLUG_SPEED, SLUG_SPEED_STEP, SLUG_HIT_RADIUS,
   LASER_AIM_TIME, LASER_AIM_MIN, LASER_AIM_STEP, LASER_BEAM_TIME, LASER_HIT_RADIUS,
 } from './config.js';
@@ -24,6 +24,12 @@ function slugSpeed() {
 function laserAimTime() {
   // the telegraph gets shorter as levels progress (first laser arrives at level 4)
   return Math.max(LASER_AIM_MIN, LASER_AIM_TIME - (game.level - 4) * LASER_AIM_STEP);
+}
+
+function fireCooldown() {
+  // cannons fire faster as levels progress (first cannon arrives at level 2)
+  const interval = Math.max(FIRE_INTERVAL_MIN, FIRE_INTERVAL - (game.level - 2) * FIRE_INTERVAL_STEP);
+  return interval + Math.random() * 60;
 }
 
 export function placeCannons() {
@@ -93,7 +99,7 @@ export function updateCannons() {
         }
         if (c.timer <= 0) {
           c.phase = 'idle';
-          c.cooldown = FIRE_INTERVAL + Math.random() * 60;
+          c.cooldown = fireCooldown();
         }
       }
       continue; // barrel stays locked on beamAngle while telegraphing/firing
@@ -114,7 +120,7 @@ export function updateCannons() {
           c.timer = c.aimTotal = laserAimTime();
           c.beamAngle = c.angle; // lock: the thin line shows exactly where the beam fires
         } else {
-          c.cooldown = FIRE_INTERVAL + Math.random() * 60;
+          c.cooldown = fireCooldown();
           const sp = slugSpeed();
           game.slugs.push({
             x: c.x + Math.cos(c.angle) * 24,
