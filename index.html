@@ -2,15 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Moon Lander</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>games.andersen.im</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #e0e0e0;
+      min-height: 100%;
+      font-family: "Courier New", monospace;
+    }
+    body {
+      background-image:
+        radial-gradient(1px 1px at 12% 18%, #fff8 0, transparent 100%),
+        radial-gradient(1px 1px at 34% 62%, #fff6 0, transparent 100%),
+        radial-gradient(1.5px 1.5px at 51% 30%, #fff9 0, transparent 100%),
+        radial-gradient(1px 1px at 68% 74%, #fff5 0, transparent 100%),
+        radial-gradient(1px 1px at 81% 22%, #fff7 0, transparent 100%),
+        radial-gradient(1.5px 1.5px at 92% 55%, #fff6 0, transparent 100%),
+        radial-gradient(1px 1px at 23% 85%, #fff6 0, transparent 100%),
+        radial-gradient(1px 1px at 45% 8%, #fff8 0, transparent 100%);
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+    h1 {
+      color: #4caf50;
+      font-size: 28px;
+      letter-spacing: 2px;
+      margin: 0 0 6px;
+    }
+    .sub {
+      color: #666;
+      font-size: 14px;
+      margin: 0 0 40px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      display: block;
+      border: 1.5px solid #333;
+      background: rgba(20, 20, 20, 0.85);
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .card:hover {
+      border-color: #4caf50;
+      transform: translateY(-2px);
+    }
+    .card .icon { font-size: 44px; line-height: 1; }
+    .card h2 {
+      color: #e0e0e0;
+      font-size: 19px;
+      letter-spacing: 1px;
+      margin: 16px 0 8px;
+    }
+    .card p {
+      color: #9e9e9e;
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin: 0 0 18px;
+    }
+    .card .play {
+      color: #4caf50;
+      font-weight: bold;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+    .card:hover .play::after { content: " ▸▸"; }
+    .card:not(:hover) .play::after { content: " ▸"; }
+    footer {
+      margin-top: 56px;
+      color: #444;
+      font-size: 12px;
+    }
+    footer a { color: #666; }
+  </style>
 </head>
 <body>
-  <canvas id="game"></canvas>
-  <div id="rotate">🔄<br>Rotate your device —<br>this game plays in landscape</div>
-  <script type="module" src="js/main.js"></script>
+  <main>
+    <h1>GAMES.ANDERSEN.IM</h1>
+    <p class="sub">Small browser games. No installs, no accounts — just play.</p>
+
+    <div class="cards">
+      <a class="card" href="/mooncraft/">
+        <div class="icon">🌙</div>
+        <h2>MOON LANDER</h2>
+        <p>Land gently, dodge cannon fire and lasers, bomb the defenses,
+        and spend your credits on a better ship. Keyboard, touch, and
+        Xbox controller supported.</p>
+        <span class="play">PLAY</span>
+      </a>
+    </div>
+
+    <footer>
+      <a href="https://github.com/andre-c-andersen/games">source on GitHub</a>
+    </footer>
+  </main>
 </body>
 </html>

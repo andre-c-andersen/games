@@ -1,26 +1,26 @@
-# 🌙 Moon Lander — v1.11
+# 🎮 games.andersen.im
 
-A classic lunar lander arcade game for the browser — with sci-fi defense cannons, laser turrets, droppable bombs, touch controls, and full Xbox controller support. Vanilla HTML/CSS/JS with ES modules, no dependencies, no build step.
+Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The site root (`index.html`) is a card index of the games; each game lives in its own subdirectory.
 
-## Play
+Live at **https://games.andersen.im** via GitHub Pages.
 
-Once published with GitHub Pages, the game runs at:
+## 🌙 Moon Lander — v1.12
 
-```
-https://<your-username>.github.io/<repo-name>/
-```
+A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
+
+Play it at **https://games.andersen.im/mooncraft/**
 
 ## Run locally
 
-The game uses ES modules, which browsers refuse to load from `file://` URLs — serve the folder over HTTP instead:
+The games use ES modules, which browsers refuse to load from `file://` URLs — serve the repo over HTTP instead:
 
 ```
 python3 -m http.server 8000
 ```
 
-Then open http://localhost:8000 (any static file server works, e.g. `npx serve`).
+Then open http://localhost:8000 for the index, or http://localhost:8000/mooncraft/ for the game directly (any static file server works, e.g. `npx serve`).
 
-For debugging, pick your starting level with a query param: `http://localhost:8000/?level=4`.
+For debugging, pick your starting level with a query param: `http://localhost:8000/mooncraft/?level=4`.
 
 Cheats, combinable with `level`: `?cheat=max` starts with every unlock bought and 99 lives; `?cheat=god` adds invulnerability (the ship bounces off terrain and shrugs off slugs, lasers, asteroids, and blasts). Cheated runs never touch your saved progress.
 
@@ -41,26 +41,33 @@ They also run automatically on every push via GitHub Actions.
 ## Project structure
 
 ```
-index.html          entry page
-css/style.css       page + canvas styles
-js/
-  main.js           entry point: input aggregation, update/draw loop
-  config.js         gameplay tuning constants
-  state.js          shared game state (leaf module)
-  canvas.js         canvas element + Retina-aware resize
-  game.js           lifecycle: reset, advance, retry, game over
-  terrain.js        stars, terrain, landing pads
-  lander.js         ship physics, touchdown/crash, drawing
-  cannons.js        gun + laser cannons, slugs, beams
-  bombs.js          bombs, detonations, blast rings
-  particles.js      exhaust/explosion particles
-  hud.js            score/fuel/lives readouts, status messages
-  menu.js           controller settings menu
-  settings.js       persisted settings (localStorage)
-  input/
-    keyboard.js     key state + one-shot actions
-    gamepad.js      polling + edge detection
-    touch.js        on-screen buttons for mobile
+index.html          game index with cards (the site root)
+CNAME               games.andersen.im
+tests/              headless test suite (run with plain node)
+mooncraft/
+  index.html        the Moon Lander entry page
+  css/style.css     page + canvas styles
+  js/
+    main.js         entry point: input aggregation, update/draw loop
+    config.js       gameplay tuning constants + VERSION
+    state.js        shared game state (leaf module)
+    canvas.js       canvas element + fixed-viewport scaling
+    game.js         lifecycle: reset, advance, retry, game over
+    terrain.js      stars, terrain, landing pads, craters
+    lander.js       ship physics, assists, shields, touchdown/crash
+    cannons.js      gun + laser cannons, slugs, beams
+    bombs.js        bombs, detonations, blast rings
+    asteroids.js    asteroid waves
+    particles.js    exhaust/explosion particles
+    hud.js          readouts, docking indicator, banners
+    shop.js         supply depot (credits → unlocks)
+    menu.js         settings + how-to-play overlay
+    settings.js     persisted settings (localStorage)
+    perf.js         P-key performance overlay
+    input/
+      keyboard.js   key state + one-shot actions
+      gamepad.js    polling + edge detection
+      touch.js      on-screen buttons for mobile
 ```
 
 ## How to play

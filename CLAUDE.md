@@ -1,7 +1,10 @@
-# Moon Lander — project instructions
+# games.andersen.im — project instructions
 
-Browser lunar-lander arcade game. Vanilla HTML/CSS/JS with ES modules — no
-build step, no dependencies. Deployed via GitHub Pages from master.
+Browser games site (GitHub repo: `games`), deployed via GitHub Pages from
+master to games.andersen.im. The site root `index.html` is a card index of
+games; each game lives in its own subdirectory. Currently: `mooncraft/`
+(Moon Lander), vanilla HTML/CSS/JS with ES modules — no build step, no
+dependencies.
 
 ## Versioning — every change bumps
 
@@ -10,8 +13,8 @@ docs, tests, refactors, all of it. Players identify builds by the version in
 the bottom-right HUD corner; two different builds must never share a label.
 
 For each push:
-1. Bump `VERSION` in `js/config.js`.
-2. Update the version in the `README.md` title.
+1. Bump `VERSION` in `mooncraft/js/config.js`.
+2. Update the version in the Moon Lander heading in `README.md`.
 3. Tag it: `git tag vX.Y && git push origin vX.Y` (same commit as the change).
 
 ## Run locally
@@ -19,7 +22,7 @@ For each push:
 ES modules do not load from `file://` — serve over HTTP:
 
 ```
-python3 -m http.server 8000    # then open http://localhost:8000
+python3 -m http.server 8000    # index at localhost:8000, game at localhost:8000/mooncraft/
 ```
 
 Debug query params (combinable): `?level=N` start level, `?cheat=max`
@@ -39,17 +42,17 @@ the loop frame by frame (see `tests/harness.mjs`). CI runs all three on every
 push (`.github/workflows/tests.yml`). When changing gameplay, extend the
 smoke test to cover it.
 
-## Architecture
+## Architecture (mooncraft/js/)
 
-- `js/state.js` is the leaf module: the shared mutable `game` object plus
+- `state.js` is the leaf module: the shared mutable `game` object plus
   derived helpers (`fuelCapacity`, `safeVY`, …) and localStorage persistence.
   Everything imports it; it imports only `config.js`.
 - Entity modules own their update + draw: `terrain.js`, `lander.js`,
   `cannons.js`, `bombs.js`, `asteroids.js`, `particles.js`.
 - `game.js` owns lifecycle (reset / advance / freshRun); `main.js` aggregates
-  input and runs the loop; input lives in `js/input/` (keyboard, gamepad,
+  input and runs the loop; input lives in `input/` (keyboard, gamepad,
   touch — all three must be kept in feature parity).
-- All tunable constants live in `js/config.js` — don't scatter magic numbers.
+- All tunable constants live in `config.js` — don't scatter magic numbers.
 
 ## Invariants — do not break
 

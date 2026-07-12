@@ -54,4 +54,4 @@ export const assert = (cond, msg) => {
   console.log('ok: ' + msg);
 };
 
-export const importGame = mod => import(new URL('../js/' + mod, import.meta.url));
+export const importGame = mod => import(new URL('../mooncraft/js/' + mod, import.meta.url));
