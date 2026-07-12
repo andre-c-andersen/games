@@ -15,6 +15,7 @@ export function reset() {
   placeCannons(); // destroyed cannons come back on retry
   // grace period before the cannons open fire, staggered per cannon
   game.cannons.forEach((c, i) => { c.cooldown = 120 + i * 75; });
+  game.lifeAwarded = false;
   game.state = 'flying';
 }
 

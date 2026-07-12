@@ -1,5 +1,9 @@
 // Gameplay tuning constants.
 
+// fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere
+export const VIEW_W = 1280;
+export const VIEW_H = 720;
+
 export const GRAVITY = 0.018;
 export const THRUST = 0.085;
 export const ROT_SPEED = 0.055;
@@ -13,7 +17,7 @@ export const FUEL_TANK_STEP = 150; // extra capacity per fuel tank upgrade
 export const START_BOMBS = 3;
 export const START_LIVES = 3;
 
-export const ASSIST_LEVEL_RATE = 0.015; // rad/frame — constant angular speed toward the assist target
+export const ASSIST_LEVEL_RATE = 0.012; // rad/frame — constant angular speed toward the assist target
 export const ASSIST_RETRO_GAIN = 0.35;  // retro assist: target tilt per unit of vx
 export const ASSIST_RETRO_MAX = 1.1;    // radians — max retro tilt
 export const ASSIST_TAP_FRAMES = 18;    // press shorter than this (~300 ms) toggles assist; longer = hold

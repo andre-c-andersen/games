@@ -115,7 +115,9 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-window.addEventListener('resize', () => { resize(); genTerrain(); reset(); });
+// the logical play area is fixed, so resizing only rescales the canvas —
+// the world and the current attempt survive window resizes and rotations
+window.addEventListener('resize', resize);
 
 resize();
 genStars();

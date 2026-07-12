@@ -57,7 +57,7 @@ function helpContent() {
   ];
   const goal = [
     'Land slow & upright on a pad.',
-    'Wide green x1 → narrow red x6.',
+    'Wide green x1 → narrow red x3.',
     'Keep the ball inside the box.',
     'Landings earn credits — spend',
     'them in the supply depot.',

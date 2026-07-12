@@ -1,7 +1,7 @@
 // Touch input (iOS / mobile): on-screen buttons + tap to continue.
 
 import { game } from '../state.js';
-import { canvas, ctx } from '../canvas.js';
+import { canvas, ctx, toLogical } from '../canvas.js';
 import { menu } from '../menu.js';
 import { dropBomb } from '../bombs.js';
 import { advance } from '../game.js';
@@ -44,10 +44,11 @@ function readTouches(e) {
   touch.assist = false;
   const btns = touchButtons();
   for (const t of e.touches) {
-    if (inButton(btns.left, t.clientX, t.clientY)) touch.rot -= 1;
-    if (inButton(btns.right, t.clientX, t.clientY)) touch.rot += 1;
-    if (inButton(btns.thrust, t.clientX, t.clientY)) touch.thrust = true;
-    if (buttonUnlocked('assist') && inButton(btns.assist, t.clientX, t.clientY)) touch.assist = true;
+    const p = toLogical(t.clientX, t.clientY);
+    if (inButton(btns.left, p.x, p.y)) touch.rot -= 1;
+    if (inButton(btns.right, p.x, p.y)) touch.rot += 1;
+    if (inButton(btns.thrust, p.x, p.y)) touch.thrust = true;
+    if (buttonUnlocked('assist') && inButton(btns.assist, p.x, p.y)) touch.assist = true;
   }
 }
 
@@ -55,12 +56,14 @@ canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   const btns = touchButtons();
   for (const t of e.changedTouches) {
-    if (buttonUnlocked('bomb') && inButton(btns.bomb, t.clientX, t.clientY)) dropBomb();
+    const p = toLogical(t.clientX, t.clientY);
+    if (buttonUnlocked('bomb') && inButton(btns.bomb, p.x, p.y)) dropBomb();
   }
   if (game.state === 'landed') {
     // shop taps: tap a row to buy, tap LAUNCH to continue
     for (const t of e.changedTouches) {
-      const row = shopRowAt(t.clientX, t.clientY);
+      const p = toLogical(t.clientX, t.clientY);
+      const row = shopRowAt(p.x, p.y);
       if (row) shopBuy(row);
     }
   } else if (game.state === 'crashed') {

@@ -13,8 +13,8 @@ export function genStars() {
 // markedly different landing difficulties: wide & cheap → narrow & lucrative
 const PAD_TYPES = [
   { w: 2.6, mult: 1, color: '#4caf50' },  // easy: wide
-  { w: 1.6, mult: 3, color: '#ffb300' },  // medium
-  { w: 1.0, mult: 6, color: '#ff5252' },  // hard: barely wider than the ship
+  { w: 1.6, mult: 2, color: '#ffb300' },  // medium
+  { w: 1.0, mult: 3, color: '#ff5252' },  // hard: barely wider than the ship
 ];
 
 export function genTerrain() {
@@ -23,7 +23,14 @@ export function genTerrain() {
   game.pads = [];
   const segs = 30;
   const segW = W / segs;
-  let y = H * (0.65 + Math.random() * 0.2);
+
+  // level-shaped baseline: a gentle dome (∩) on level 1 that flattens out,
+  // then deepens into a U-shaped bowl — high rims give the cannons
+  // clearer firing lines down at the ship as levels progress
+  const depth = Math.min(0.35, -0.10 + (game.level - 1) * 0.03) * H;
+  const baseY = H * (0.55 + Math.random() * 0.12);
+  const shapeAt = t => baseY + depth * (1 - 4 * (t - 0.5) ** 2) - depth / 2;
+
   // choose non-adjacent pad segments, one per difficulty, in random order
   const padSegs = [];
   while (padSegs.length < PAD_TYPES.length) {
@@ -33,6 +40,7 @@ export function genTerrain() {
   padSegs.sort((a, b) => a - b);
   const types = [...PAD_TYPES].sort(() => Math.random() - 0.5);
   let x = 0;
+  let y = shapeAt(0);
   game.terrain.push({ x, y });
   for (let i = 0; i < segs; i++) {
     const padIdx = padSegs.indexOf(i);
@@ -44,8 +52,9 @@ export function genTerrain() {
       x += padW;
     } else {
       x += segW;
-      y += (Math.random() - 0.5) * H * 0.18;
-      y = Math.max(H * 0.45, Math.min(H * 0.92, y));
+      // random wander pulled toward the level's baseline profile
+      y += (Math.random() - 0.5) * H * 0.12 + (shapeAt(x / W) - y) * 0.55;
+      y = Math.max(H * 0.25, Math.min(H * 0.92, y));
       game.terrain.push({ x, y });
     }
   }

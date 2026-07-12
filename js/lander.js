@@ -114,6 +114,11 @@ export function updateLander(rot, thrustAmt, assistHeld) {
       lander.vx = lander.vy = 0;
       lander.angle = 0;
       game.credits += 50 * pad.mult + Math.floor(lander.fuel / 10);
+      // a free life every other level, awarded at touchdown
+      if (game.level % 2 === 0) {
+        game.lives++;
+        game.lifeAwarded = true;
+      }
     } else {
       crash();
     }
@@ -123,6 +128,21 @@ export function updateLander(rot, thrustAmt, assistHeld) {
 export function drawLander() {
   if (game.state === 'crashed') return;
   const lander = game.lander;
+
+  // ship off the top of the screen: mark its position on the top border
+  if (game.state === 'flying' && lander.y < -10) {
+    const mx = Math.max(12, Math.min(game.W - 12, lander.x));
+    ctx.fillStyle = '#ffb300';
+    ctx.beginPath();
+    ctx.moveTo(mx, 6);
+    ctx.lineTo(mx - 7, 20);
+    ctx.lineTo(mx + 7, 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = '12px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.ceil(-lander.y / 10) + '0m', mx, 34);
+  }
   ctx.save();
   ctx.translate(lander.x, lander.y);
   ctx.rotate(lander.angle);

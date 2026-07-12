@@ -148,6 +148,10 @@ export function drawHUD() {
     ctx.fillStyle = '#4caf50';
     ctx.font = 'bold 32px Courier New';
     ctx.fillText('THE EAGLE HAS LANDED', W / 2, H / 2 - 20);
+    if (game.lifeAwarded) {
+      ctx.font = 'bold 15px Courier New';
+      ctx.fillText('+1 BONUS LIFE', W / 2, H / 2 + 8);
+    }
   } else if (game.state === 'crashed') {
     const over = game.lives <= 0;
     ctx.fillStyle = '#ff5252';

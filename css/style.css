@@ -10,9 +10,15 @@ html, body {
   font-family: "Courier New", monospace;
 }
 
+/* center the fixed-aspect play area; the body's black shows as letterbox bars */
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 #game {
   display: block;
-  margin: 0 auto;
   background: #000;
   touch-action: none;
   -webkit-user-select: none;

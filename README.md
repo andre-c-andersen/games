@@ -49,14 +49,14 @@ js/
 
 ## How to play
 
-Land gently on a pad. A safe landing needs low speed and a nearly upright ship — watch the docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×3, and narrow red ×6 — the multiplier scales your landing credits, and leftover fuel pays a bonus.
+Land gently on a pad. A safe landing needs low speed and a nearly upright ship — watch the docking indicator: keep the ball inside the brackets and land when it reads LAND OK. Pads come in three difficulties: wide green ×1, medium amber ×2, and narrow red ×3 — the multiplier scales your landing credits, and leftover fuel pays a bonus. If you fly off the top of the screen, an amber marker on the top border tracks your position and height.
 
 Landings earn **credits**, spent in the supply depot (shown after every landing):
 
 - **Weapons**: bombs ×3 → triple bomb (whole rack in one volley) → super bombs (bigger blast) → triple super bomb. Destroyed cannons pay 75 credits.
 - **Fly assist** (hold the assist button): level assist eases the ship upright; retro assist tilts it against your horizontal travel so thrusting brakes you.
 - **Fuel tanks**: three capacity upgrades.
-- **Extra lives**: you start with 3 and no longer gain any per level — buy them, at prices that climb with each purchase.
+- **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
 From level 2, cannons appear (one more every other level, up to 10): guns fire slugs you can dodge, and every second cannon is a laser that telegraphs its shot with a thin red line before firing. Game over resets credits and unlocks — the run is the progression.
 
