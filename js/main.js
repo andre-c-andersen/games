@@ -15,7 +15,7 @@ import { menu, menuMove, menuAdjust, menuActivate, drawMenu } from './menu.js';
 import { settings } from './settings.js';
 import { keys } from './input/keyboard.js';
 import { readGamepad } from './input/gamepad.js';
-import { touch, drawTouchControls } from './input/touch.js';
+import { touch, drawTouchControls, drawTouchGear } from './input/touch.js';
 
 function update() {
   const { pad, edge } = readGamepad();
@@ -120,6 +120,7 @@ function loop(now) {
   if (game.state === 'landed') drawShop();
   drawTouchControls();
   if (menu.open) drawMenu();
+  drawTouchGear();
   requestAnimationFrame(loop);
 }
 

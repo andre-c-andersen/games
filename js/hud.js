@@ -153,20 +153,21 @@ export function drawHUD() {
   // docking-style landing safety indicator
   drawLandingIndicator(24, y + 10);
 
-  // right column
+  // right column (shifted left on touch devices to clear the gear button)
+  const rightX = touch.enabled ? W - 92 : W - 24;
   ctx.font = '17px Courier New';
   ctx.textAlign = 'right';
   if (gamepad.connected) {
     ctx.fillStyle = '#4caf50';
-    ctx.fillText('\u{1F3AE} CONTROLLER', W - 24, 38);
+    ctx.fillText('\u{1F3AE} CONTROLLER', rightX, 38);
   }
   if (unlocks.assist >= 1) {
     ctx.fillStyle = game.assistActive ? '#4caf50' : '#666';
-    ctx.fillText((unlocks.assist >= 2 ? 'RETRO' : 'LEVEL') + ' ASSIST ' + (game.assistActive ? '●' : '○'), W - 24, 64);
+    ctx.fillText((unlocks.assist >= 2 ? 'RETRO' : 'LEVEL') + ' ASSIST ' + (game.assistActive ? '●' : '○'), rightX, 64);
   }
   if (cheat.max) {
     ctx.fillStyle = '#ff4081';
-    ctx.fillText(cheat.god ? 'GOD MODE' : 'CHEATS ON', W - 24, 90);
+    ctx.fillText(cheat.god ? 'GOD MODE' : 'CHEATS ON', rightX, 90);
   }
 
   // version tag, bottom-right corner

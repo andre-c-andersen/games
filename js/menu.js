@@ -1,8 +1,9 @@
 // Pause menu: settings panel (left) + how-to-play reference (right).
 
-import { game } from './state.js';
+import { game, clearProgress } from './state.js';
 import { ctx } from './canvas.js';
 import { settings, saveSettings, resetSettings } from './settings.js';
+import { freshRun } from './game.js';
 import { gamepad } from './input/gamepad.js';
 
 const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -13,7 +14,8 @@ export const menuItems = [
   { label: 'ROTATION SENSITIVITY', key: 'rotSens',    min: 0.2,  max: 2.5, step: 0.1,  fmt: v => v.toFixed(1) + 'x' },
   { label: 'STICK DEADZONE',       key: 'deadzone',   min: 0.05, max: 0.6, step: 0.05, fmt: v => Math.round(v * 100) + '%' },
   { label: 'TRIGGER THRESHOLD',    key: 'trigThresh', min: 0.05, max: 0.6, step: 0.05, fmt: v => Math.round(v * 100) + '%' },
-  { label: 'RESET TO DEFAULTS', action: 'reset' },
+  { label: 'RESET SETTINGS', action: 'reset' },
+  { label: 'RESET PROGRESS', action: 'wipe' },
   { label: 'CLOSE', action: 'close' },
 ];
 
@@ -29,9 +31,30 @@ export function menuAdjust(d) {
   saveSettings();
 }
 
+// touch: tap a row to use it — left/right halves adjust sliders, action rows activate
+export function menuTapAt(x, y) {
+  const { W, H } = game;
+  const top = H / 2 - 190;
+  const leftCx = W >= 700 ? W * 0.27 : W / 2;
+  if (Math.abs(x - leftCx) > 240) return;
+  menuItems.forEach((it, i) => {
+    const rowY = top + 70 + i * 62;
+    if (y < rowY - 26 || y > rowY + 30) return;
+    menu.index = i;
+    if (it.key) menuAdjust(x < leftCx ? -1 : 1);
+    else menuActivate();
+  });
+}
+
 export function menuActivate() {
   const it = menuItems[menu.index];
   if (it.action === 'reset') resetSettings();
+  else if (it.action === 'wipe') {
+    // wipe the save and restart the run from scratch
+    clearProgress();
+    freshRun();
+    menu.open = false;
+  }
   else if (it.action === 'close') menu.open = false;
 }
 
@@ -47,7 +70,7 @@ function helpContent() {
     ['▲', 'thrust'],
     ['B', 'drop bomb *'],
     ['A', 'toggle fly assist *'],
-    ['TAP ROWS', 'buy in depot'],
+    ['⚙', 'open/close this menu'],
   ] : [
     ['← → or A / D', 'rotate'],
     ['↑ SPACE or W', 'thrust'],

@@ -22,19 +22,28 @@ export function reset() {
   game.state = 'flying';
 }
 
+// start over from scratch: game over, or the menu's RESET PROGRESS
+export function freshRun() {
+  game.credits = 0;
+  game.level = game.startLevel;
+  game.lives = START_LIVES;
+  game.unlocks = freshUnlocks();
+  game.assistOn = false;
+  applyCheats(); // a cheated run stays cheated
+  genTerrain();
+  reset();
+  saveProgress();
+}
+
 // continue after a landing (next level), a crash (retry),
 // or a game over (fresh run from the start level)
 export function advance() {
+  if (game.state === 'crashed' && game.lives <= 0) {
+    freshRun();
+    return;
+  }
   if (game.state === 'landed') {
     game.level++;
-    genTerrain();
-  } else if (game.state === 'crashed' && game.lives <= 0) {
-    game.credits = 0;
-    game.level = game.startLevel;
-    game.lives = START_LIVES;
-    game.unlocks = freshUnlocks();
-    game.assistOn = false;
-    applyCheats(); // a cheated run stays cheated after game over
     genTerrain();
   }
   reset();

@@ -25,3 +25,23 @@ body {
   user-select: none;
   -webkit-touch-callout: none;
 }
+
+/* touch devices held in portrait: ask for landscape instead of a tiny letterbox */
+#rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #000;
+  color: #e0e0e0;
+  font-size: 22px;
+  line-height: 1.6;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  #rotate { display: flex; }
+}

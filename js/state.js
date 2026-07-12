@@ -76,6 +76,10 @@ export function applyCheats() {
 }
 applyCheats();
 
+export function clearProgress() {
+  try { localStorage.removeItem(PROGRESS_KEY); } catch (e) {}
+}
+
 // levelBump: pass 1 when saving at touchdown, so a refresh on the shop screen
 // resumes on the next level instead of letting the landing be re-earned
 export function saveProgress(levelBump = 0) {

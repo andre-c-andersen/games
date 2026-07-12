@@ -4,7 +4,7 @@ import { game } from './state.js';
 import { ctx } from './canvas.js';
 import {
   FIRE_INTERVAL, FIRE_INTERVAL_MIN, FIRE_INTERVAL_STEP,
-  SLUG_SPEED, SLUG_SPEED_STEP, SLUG_HIT_RADIUS,
+  SLUG_SPEED, SLUG_SPEED_STEP, SLUG_SPEED_MAX, SLUG_HIT_RADIUS,
   LASER_AIM_TIME, LASER_AIM_MIN, LASER_AIM_STEP, LASER_BEAM_TIME, LASER_HIT_RADIUS,
 } from './config.js';
 import { terrainYAt } from './terrain.js';
@@ -17,8 +17,9 @@ export function cannonCount() {
 }
 
 function slugSpeed() {
-  // keeps climbing with the cannon count at higher levels
-  return SLUG_SPEED + Math.max(0, cannonCount() - 1) * SLUG_SPEED_STEP;
+  // climbs with the cannon count, capped where terrain stops fitting more
+  // cannons — the wanted count keeps growing but placement doesn't
+  return Math.min(SLUG_SPEED_MAX, SLUG_SPEED + Math.max(0, cannonCount() - 1) * SLUG_SPEED_STEP);
 }
 
 function laserAimTime() {

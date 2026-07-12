@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.1';
+export const VERSION = '1.2';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -33,7 +33,8 @@ export const FIRE_INTERVAL = 150;      // frames between shots per cannon at low
 export const FIRE_INTERVAL_MIN = 70;   // …shrinking to this floor at high levels
 export const FIRE_INTERVAL_STEP = 3;   // frames of cooldown lost per level past the first cannon
 export const SLUG_SPEED = 1.7;
-export const SLUG_SPEED_STEP = 0.15;      // extra slug speed per additional cannon (uncapped)
+export const SLUG_SPEED_STEP = 0.15;      // extra slug speed per additional cannon
+export const SLUG_SPEED_MAX = 4.6;        // ≈ where terrain caps cannon placement (~level 40)
 export const SLUG_HIT_RADIUS = 15;
 
 export const LASER_AIM_TIME = 90;         // frames ≈ 1500 ms — telegraph at low levels…

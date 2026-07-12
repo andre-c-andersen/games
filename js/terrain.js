@@ -62,6 +62,19 @@ export function genTerrain() {
   game.terrain[game.terrain.length - 1].x = W;
 }
 
+// carve a crater: push nearby terrain down with a smooth falloff, never
+// below a minimum floor; pad surfaces are never deformed
+export function deformTerrain(x, radius, depth) {
+  const floor = game.H * 0.94;
+  for (const pt of game.terrain) {
+    const d = Math.abs(pt.x - x);
+    if (d >= radius) continue;
+    if (game.pads.some(p => pt.x >= p.x1 && pt.x <= p.x2)) continue;
+    const falloff = 1 - (d / radius) ** 2;
+    pt.y = Math.min(pt.y + depth * falloff, floor);
+  }
+}
+
 export function terrainYAt(x) {
   const terrain = game.terrain;
   for (let i = 0; i < terrain.length - 1; i++) {

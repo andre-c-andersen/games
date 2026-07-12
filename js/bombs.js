@@ -5,7 +5,7 @@ import { ctx } from './canvas.js';
 import {
   GRAVITY, BOMB_EJECT, BOMB_RECOIL, BLAST_RADIUS, SUPER_BLAST_RADIUS, TRIPLE_SPREAD,
 } from './config.js';
-import { terrainYAt } from './terrain.js';
+import { terrainYAt, deformTerrain } from './terrain.js';
 import { hitShip } from './lander.js';
 
 export function dropBomb() {
@@ -37,6 +37,7 @@ export function dropBomb() {
 export function detonate(x, y, isSuper) {
   const radius = isSuper ? SUPER_BLAST_RADIUS : BLAST_RADIUS;
   game.booms.push({ x, y, r: 6, max: radius });
+  if (isSuper) deformTerrain(x, radius, 55); // super blasts crater the moonscape
   const n = isSuper ? 80 : 50;
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2;
@@ -55,6 +56,8 @@ export function detonate(x, y, isSuper) {
       game.credits += 75;
     }
   }
+  // survivors near a crater settle onto the deformed ground
+  if (isSuper) for (const c of game.cannons) c.y = terrainYAt(c.x);
   for (let i = game.slugs.length - 1; i >= 0; i--) {
     if (Math.hypot(game.slugs[i].x - x, game.slugs[i].y - y) < radius) game.slugs.splice(i, 1);
   }

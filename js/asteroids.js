@@ -14,10 +14,16 @@ export function waveSize() {
   return ASTEROID_LEVELS.filter(l => game.level >= l).length;
 }
 
+// past level 25 waves arrive faster — the difficulty lever that keeps
+// climbing after terrain caps the cannon count (~level 40)
+function pace() {
+  return Math.max(0.45, 1 - Math.max(0, game.level - 25) * 0.015);
+}
+
 export function resetAsteroids() {
   game.asteroids = [];
   queue = 0;
-  spawnTimer = 150 + Math.random() * 150; // short grace, then the first wave (~2.5-5s)
+  spawnTimer = (150 + Math.random() * 150) * pace(); // short grace, then the first wave
 }
 
 function spawnOne() {
@@ -64,8 +70,9 @@ export function updateAsteroids() {
       if (queue === 0) queue = 1 + Math.floor(Math.random() * max); // wave of 1..max
       spawnOne();
       queue--;
-      // consecutive within a wave, then a breather between waves (~5-10s)
-      spawnTimer = queue > 0 ? 30 + Math.random() * 30 : 300 + Math.random() * 300;
+      // consecutive within a wave, then a breather between waves (~5-10s,
+      // shrinking at high levels)
+      spawnTimer = queue > 0 ? 30 + Math.random() * 30 : (300 + Math.random() * 300) * pace();
     }
   }
 
