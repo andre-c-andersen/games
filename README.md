@@ -4,7 +4,7 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.19
+## 🌙 Moon Lander — v1.20
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
 
@@ -86,7 +86,7 @@ Landings earn **credits**, spent in the supply depot (shown after every landing)
 - **Fuel tanks**: three capacity upgrades.
 - **Extra lives**: you start with 3 and earn a free one for landing on even-numbered levels; buy more at prices that climb with each purchase.
 
-From level 2, cannons appear — one more every other level. Once the terrain can't fit more, the extra firepower keeps arriving as cannon shields instead, at the same cadence: each shield (a cyan dome) absorbs one blast, so shielded cannons take an extra bomb per charge to destroy. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often and leads your motion more accurately at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. From level 6, asteroid waves fall from the sky — growing to five consecutive rocks per wave by level 25 and arriving faster at higher levels; bomb blasts destroy them for 25 credits each. Game over resets credits and unlocks — the run is the progression.
+From level 2, cannons appear — one more every other level, up to 12. Past the cap the firepower keeps growing at the same cadence as cannon shields, sprinkled randomly across the placed cannons (clusters happen — a faint cyan bubble and a tiny ×N tag show a cannon's charges). Each shield absorbs one bomb blast, super or not, so a shielded cannon takes one extra bomb per charge to destroy. Guns fire slugs that get faster as the cannon count grows, every cannon fires more often and leads your motion more accurately at higher levels, and every second cannon is a laser that telegraphs its shot with a thin red line before firing; the telegraph gets shorter as you climb. From level 6, asteroid waves fall from the sky — growing to five consecutive rocks per wave by level 25 and arriving faster at higher levels; bomb blasts destroy them for 25 credits each. Game over resets credits and unlocks — the run is the progression.
 
 Alongside spendable credits, every earning also feeds a **score** that never goes down. Dying for good ranks the run on a local top-10 board (by level reached, then score); making the board opens arcade-style three-letter name entry — arrows/ENTER on keyboard (or just type), d-pad/A on a controller, tap the ▲▼ arrows and OK on touch. ESC or B skips the entry.
 

@@ -3,7 +3,7 @@
 import { game } from './state.js';
 import { ctx } from './canvas.js';
 import {
-  FIRE_INTERVAL, FIRE_INTERVAL_MIN, FIRE_INTERVAL_STEP,
+  MAX_CANNONS, FIRE_INTERVAL, FIRE_INTERVAL_MIN, FIRE_INTERVAL_STEP,
   SLUG_SPEED, SLUG_SPEED_STEP, SLUG_SPEED_MAX, SLUG_HIT_RADIUS,
   LASER_AIM_TIME, LASER_AIM_MIN, LASER_AIM_STEP, LASER_BEAM_TIME, LASER_HIT_RADIUS,
 } from './config.js';
@@ -64,7 +64,7 @@ export function placeCannons() {
   const candidates = game.terrain.filter(pt =>
     pt.x > W * 0.08 && pt.x < W * 0.92 &&
     !game.pads.some(p => pt.x > p.x1 - 45 && pt.x < p.x2 + 45));
-  const n = cannonCount();
+  const n = Math.min(cannonCount(), MAX_CANNONS);
   const minGap = Math.min(W * 0.15, (W * 0.45) / n); // tighter packing allowed as count grows
   for (let i = 0; i < n; i++) {
     const targetX = W * ((i + 1) / (n + 1));
@@ -81,12 +81,15 @@ export function placeCannons() {
       phase: 'idle', timer: 0, aimTotal: 0, beamAngle: 0, beamHit: false,
     });
   }
-  // once terrain can't fit more cannons, the level's extra firepower arrives
-  // as shields instead — one charge per unplaced cannon (so the every-other-
-  // level cadence continues), spread evenly across the placed ones
+  // past the cannon cap the level's extra firepower arrives as shields
+  // instead — one charge per unplaced cannon, so the every-other-level
+  // cadence continues. Sprinkled at random: clusters are a feature, some
+  // cannons end up extra shielded while others go bare.
   if (game.cannons.length) {
-    const extra = n - game.cannons.length;
-    for (let i = 0; i < extra; i++) game.cannons[i % game.cannons.length].shield++;
+    const extra = cannonCount() - game.cannons.length;
+    for (let i = 0; i < extra; i++) {
+      game.cannons[Math.floor(Math.random() * game.cannons.length)].shield++;
+    }
   }
 }
 
@@ -218,15 +221,19 @@ export function drawCannons() {
     ctx.fill();
     ctx.strokeStyle = accent;
     ctx.stroke();
-    // shield bubbles: one dome per remaining charge
+    // shielded: a subtle bubble, with a tiny ×N charge count beside it
     if (c.shield > 0) {
       ctx.strokeStyle = '#4dd0e1';
-      ctx.globalAlpha = 0.7;
-      for (let s = 0; s < c.shield; s++) {
-        ctx.beginPath();
-        ctx.arc(0, 0, 16 + s * 4, Math.PI, 0);
-        ctx.stroke();
-      }
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, Math.PI, 0);
+      ctx.stroke();
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = '#4dd0e1';
+      ctx.font = 'bold 11px Courier New';
+      ctx.textAlign = 'left';
+      ctx.fillText(c.shield + 'x', 15, -12);
       ctx.globalAlpha = 1;
     }
     // blinking core light

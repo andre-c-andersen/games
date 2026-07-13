@@ -317,25 +317,37 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
     'the unshielded blast kills and pays the bounty');
 }
 
-// past the terrain's cannon capacity, unplaced cannons become shields,
-// spread evenly across the placed ones
+// past the MAX_CANNONS cap, unplaced cannons become randomly-sprinkled
+// shield charges — the every-other-level cadence continues as shields
 {
   const { placeCannons, cannonCount } = await importGame('cannons.js');
   const { genTerrain } = await importGame('terrain.js');
+  const { MAX_CANNONS } = await importGame('config.js');
   const levelWas = game.level;
-  game.level = 80; // wants 40 cannons — far more than any terrain fits
+  const totalShields = () => game.cannons.reduce((s, c) => s + c.shield, 0);
+
+  game.level = 30; // the cap (12) is passed from level 26 — shields visible here
+  genTerrain();
+  placeCannons();
+  assert(game.cannons.length <= MAX_CANNONS, 'placement respects the cannon cap');
+  assert(totalShields() === cannonCount() - game.cannons.length && totalShields() >= 3,
+    'level 30 already fields shielded cannons (' + totalShields() + ' charges)');
+
+  game.level = 80; // wants 40 — deep past the cap
   genTerrain();
   placeCannons();
   const wanted = cannonCount(), placed = game.cannons.length;
-  assert(placed > 0 && placed < wanted, 'level 80 wants more cannons than fit (' + placed + '/' + wanted + ')');
-  const charges = game.cannons.map(c => c.shield);
-  assert(charges.reduce((s, v) => s + v, 0) === wanted - placed, 'every unplaced cannon becomes one shield charge');
-  assert(Math.max(...charges) - Math.min(...charges) <= 1, 'shield charges spread evenly, got ' + charges.join());
+  assert(placed <= MAX_CANNONS && placed < wanted, 'level 80 caps placement (' + placed + '/' + wanted + ')');
+  assert(totalShields() === wanted - placed, 'every unplaced cannon becomes one shield charge');
+
   game.level = levelWas;
   genTerrain();
   game.state = 'crashed';
   pressKey(' '); // fresh attempt on the restored level
-  assert(game.cannons.every(c => c.shield === 0), 'no cannon shields at level ' + game.level);
+  // placement is best-effort, so a tight terrain may still yield a charge
+  // or two below the cap — but wanted defense is always conserved
+  assert(totalShields() === cannonCount() - game.cannons.length,
+    'wanted defense conserved at level ' + game.level);
 }
 
 // perf overlay toggles with P and draws without breaking the loop

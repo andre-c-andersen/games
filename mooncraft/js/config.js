@@ -1,6 +1,6 @@
 // Gameplay tuning constants.
 
-export const VERSION = '1.19';
+export const VERSION = '1.20';
 
 // fixed logical play area — scaled to fit the screen, letterboxed, same view everywhere.
 // 2:1 splits the difference between phone screens (~19.5:9) and laptop browser
@@ -43,6 +43,7 @@ export const LAND_ASSIST_DESCENT = 0.004;    // desired descent per px of height
 export const LAND_ASSIST_DESCENT_MIN = 0.3;  // …between a soft floor near touchdown
 export const LAND_ASSIST_DESCENT_MAX = 1.4;  // …and a brisk ceiling when high up
 
+export const MAX_CANNONS = 12; // placement cap — the wanted count keeps growing and the excess becomes cannon shields
 export const FIRE_INTERVAL = 150;      // frames between shots per cannon at low levels…
 export const FIRE_INTERVAL_MIN = 70;   // …shrinking to this floor at high levels
 export const FIRE_INTERVAL_STEP = 3;   // frames of cooldown lost per level past the first cannon
