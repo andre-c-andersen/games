@@ -38,9 +38,11 @@ node tests/cheat-check.mjs
 ```
 
 Headless, dependency-free: they stub the DOM, boot the real game, and drive
-the loop frame by frame (see `tests/harness.mjs`). CI runs all three on every
-push (`.github/workflows/tests.yml`). When changing gameplay, extend the
-smoke test to cover it.
+the loop frame by frame (see `tests/harness.mjs`). The harness seeds
+`Math.random`, so runs are deterministic; `TEST_SEED=n node tests/smoke.mjs`
+explores other seeds (the seed is printed for replaying failures). CI runs
+all three on every push (`.github/workflows/tests.yml`). When changing
+gameplay, extend the smoke test to cover it.
 
 ## Architecture (mooncraft/js/)
 

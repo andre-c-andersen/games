@@ -3,6 +3,19 @@
 // Run tests with plain node: `node tests/smoke.mjs`
 
 export function setup({ search = '' } = {}) {
+  // all game randomness flows through Math.random, so a seeded PRNG
+  // (mulberry32) makes every run reproducible. TEST_SEED=n explores others;
+  // the seed is printed so any failure can be replayed exactly.
+  const seed = Number(process.env.TEST_SEED ?? 1) >>> 0;
+  let s = seed;
+  Math.random = () => {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  console.log('rng seed: ' + seed);
+
   const ctxStub = new Proxy({}, {
     get: (t, p) => typeof p === 'symbol' ? undefined : (t[p] ??= () => {}),
     set: (t, p, v) => (t[p] = v, true),

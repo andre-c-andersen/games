@@ -4,7 +4,7 @@ Small browser games — vanilla HTML/CSS/JS, no dependencies, no build step. The
 
 Live at **https://games.andersen.im** via GitHub Pages.
 
-## 🌙 Moon Lander — v1.21
+## 🌙 Moon Lander — v1.22
 
 A classic lunar lander arcade game — with sci-fi defense cannons, laser turrets, droppable bombs, asteroids, an upgrade economy, touch controls, and full Xbox controller support.
 
