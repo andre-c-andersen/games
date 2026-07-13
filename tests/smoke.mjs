@@ -301,6 +301,38 @@ assert(game.bombs.length === 1 && game.bombs.every(b => b.super), 'super bombs f
   credits = game.credits;
   detonate(bx, by, false);
   assert(game.credits === credits + 25 && game.asteroids.length === 0, 'blasted asteroid pays 25 CR');
+
+  // cannon shields: each blast strips one charge — no bounty until the kill
+  game.cannons = [{ x: bx, y: by, type: 'gun', angle: 0, cooldown: 9999, shield: 2 }];
+  credits = game.credits;
+  detonate(bx, by, false);
+  detonate(bx, by, false);
+  assert(game.cannons.length === 1 && game.cannons[0].shield === 0 && game.credits === credits,
+    'blasts strip cannon shields first, paying nothing');
+  detonate(bx, by, false);
+  assert(game.cannons.length === 0 && game.credits === credits + 75,
+    'the unshielded blast kills and pays the bounty');
+}
+
+// past the terrain's cannon capacity, unplaced cannons become shields,
+// spread evenly across the placed ones
+{
+  const { placeCannons, cannonCount } = await importGame('cannons.js');
+  const { genTerrain } = await importGame('terrain.js');
+  const levelWas = game.level;
+  game.level = 80; // wants 40 cannons — far more than any terrain fits
+  genTerrain();
+  placeCannons();
+  const wanted = cannonCount(), placed = game.cannons.length;
+  assert(placed > 0 && placed < wanted, 'level 80 wants more cannons than fit (' + placed + '/' + wanted + ')');
+  const charges = game.cannons.map(c => c.shield);
+  assert(charges.reduce((s, v) => s + v, 0) === wanted - placed, 'every unplaced cannon becomes one shield charge');
+  assert(Math.max(...charges) - Math.min(...charges) <= 1, 'shield charges spread evenly, got ' + charges.join());
+  game.level = levelWas;
+  genTerrain();
+  game.state = 'crashed';
+  pressKey(' '); // fresh attempt on the restored level
+  assert(game.cannons.every(c => c.shield === 0), 'no cannon shields at level ' + game.level);
 }
 
 // perf overlay toggles with P and draws without breaking the loop

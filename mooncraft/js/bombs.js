@@ -44,9 +44,15 @@ export function detonate(x, y, isSuper) {
     });
   }
   for (let i = game.cannons.length - 1; i >= 0; i--) {
-    if (Math.hypot(game.cannons[i].x - x, game.cannons[i].y - y) < radius) {
-      game.cannons.splice(i, 1);
-      game.credits += CANNON_BOUNTY;
+    const c = game.cannons[i];
+    if (Math.hypot(c.x - x, c.y - y) < radius) {
+      if (c.shield > 0) {
+        c.shield--; // a shield charge absorbs the blast — no bounty
+        game.booms.push({ x: c.x, y: c.y, r: 6, max: 34, color: '#4dd0e1' });
+      } else {
+        game.cannons.splice(i, 1);
+        game.credits += CANNON_BOUNTY;
+      }
     }
   }
   // survivors near a crater settle onto the deformed ground
@@ -115,10 +121,10 @@ export function drawBombs() {
     }
     ctx.restore();
   }
-  // expanding blast rings
+  // expanding blast rings (shield absorbs flash cyan)
   for (const bm of game.booms) {
     ctx.globalAlpha = Math.max(0, 1 - bm.r / bm.max);
-    ctx.strokeStyle = '#ffa726';
+    ctx.strokeStyle = bm.color || '#ffa726';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(bm.x, bm.y, bm.r, 0, Math.PI * 2);

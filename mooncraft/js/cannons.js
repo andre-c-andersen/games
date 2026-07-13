@@ -76,10 +76,17 @@ export function placeCannons() {
       }
     }
     if (best) game.cannons.push({
-      x: best.x, y: best.y, angle: -Math.PI / 2, cooldown: 0,
+      x: best.x, y: best.y, angle: -Math.PI / 2, cooldown: 0, shield: 0,
       type: game.cannons.length % 2 ? 'laser' : 'gun', // alternate: 1st gun, 2nd laser, ...
       phase: 'idle', timer: 0, aimTotal: 0, beamAngle: 0, beamHit: false,
     });
+  }
+  // once terrain can't fit more cannons, the level's extra firepower arrives
+  // as shields instead — one charge per unplaced cannon (so the every-other-
+  // level cadence continues), spread evenly across the placed ones
+  if (game.cannons.length) {
+    const extra = n - game.cannons.length;
+    for (let i = 0; i < extra; i++) game.cannons[i % game.cannons.length].shield++;
   }
 }
 
@@ -211,6 +218,17 @@ export function drawCannons() {
     ctx.fill();
     ctx.strokeStyle = accent;
     ctx.stroke();
+    // shield bubbles: one dome per remaining charge
+    if (c.shield > 0) {
+      ctx.strokeStyle = '#4dd0e1';
+      ctx.globalAlpha = 0.7;
+      for (let s = 0; s < c.shield; s++) {
+        ctx.beginPath();
+        ctx.arc(0, 0, 16 + s * 4, Math.PI, 0);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
     // blinking core light
     ctx.beginPath();
     ctx.arc(0, -4, 2.5, 0, Math.PI * 2);
